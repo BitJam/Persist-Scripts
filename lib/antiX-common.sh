@@ -1245,6 +1245,7 @@ device_info() {
         [    "$mount" -a -z "$mounted" -a    "$unmounted" ] && continue
         [ -z "$mount" -a    "$mounted" -a -z "$unmounted" ] && continue
 
+        local size= free=
         [ "$mount" ] && size=$(df -Ph $mount | awk '{size=$2}END{print size}')
         [ "$mount" ] && free=$(df -Ph $mount | awk '{size=$4}END{print size}')
 
