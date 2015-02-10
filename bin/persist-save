@@ -53,7 +53,7 @@ fi
 
 if which alsactl &>/dev/null; then
     vpf "Storing volume settings"
-    alsactl store
+    alsactl --ignore store
 fi
 
 mount_if_needed $PERSIST_DEV $PERSIST_MP
