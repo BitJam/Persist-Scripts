@@ -11,13 +11,14 @@ TITLE="$(gt "antiX Root Persistence Auto-Save Configuration")"
 CONF_FILE=/etc/live/config/persist-config.conf
 PERSIST_SAVE_CONF=/live/config/persist-save.conf
 
-_Automatic_="$(gt "Automatic")"
+     _Automatic_="$(gt "Automatic")"
 _Semi_Automatic_="$(gt "Semi-Automatic")"
-_Manual_="$(gt "Manual")"
+        _Manual_="$(gt "Manual")"
+          _Quit_="$(gt "Quit")"
 
 BLURB="
     $(gt "Configure root persistence saves to run either:")
-                                                          
+
     1) [b]$_Automatic_[/] ($(gt "at shutdown/reboot, no asking"))
     2) [b]$_Semi_Automatic_[/] ($(gt "ask at shutdown/reboot"))
     3) [b]$_Manual_[/] ($(gt "you snooze, you lose"))"
@@ -79,18 +80,21 @@ edit_config() {
     fi
 
     fmt="[fixed][b]%15s:[/][/] %s   "
-    combo_box save-mode "$_Automatic_!$_Semi_Automatic_!$_Manual_" -a  \
+    combo_box save-mode "1 $_Automatic_!2 $_Semi_Automatic_!3 $_Manual_!4 $_Quit_" -n \
         "$TITLE" ""                                                    \
         "Please choose auto-save mode."                                \
         ""                                                             \
         "$mode_str"                                                    \
         ""                                                             \
-        "$(pf "$fmt" $_Automatic_      "`gt "save on shutdown/reboot automatically.  No asking."`")"   \
-        "$(pf "$fmt" $_Semi_Automatic_ "`gt "ask to save on shutdown/reboot."`")"                      \
-        "$(pf "$fmt" $_Manual_         "`gt "only save changes manually (you snooze, you lose)."`")"   \
+        "$(pf "$fmt" "$_Automatic_"      "`gt "save on shutdown/reboot automatically.  No asking."`")"   \
+        "$(pf "$fmt" "$_Semi_Automatic_" "`gt "ask to save on shutdown/reboot."`")"                      \
+        "$(pf "$fmt" "$_Manual_"         "`gt "only save changes manually (you snooze, you lose)."`")"   \
+        "$(pf "$fmt" "$_Quit_"           "`gt "use current default."`")"                                 \
         ""
 
-    AUTOSAVE_MODE="$UI_RESULT"
+    AUTOSAVE_MODE=$UI_RESULT
+
+    [ -z "${AUTOSAVE_MODE##4*}" ] && exit
 
     [ -f $CONF_FILE ] || mkdir -p $(dirname $CONF_FILE)
 
@@ -139,19 +143,14 @@ elif [ "$SET_SHUT_DOWN" ]; then
     [ "$AUTOSAVE_MODE" ] || exit_command
 
     vmsg "AUTOSAVE_MODE=$AUTOSAVE_MODE"
+    persist_opts=--quiet
     case "$AUTOSAVE_MODE" in
-        $_Automatic_)
-            persist_opts=--quiet
-            ;;
-        $_Semi_Automatic_)
-            ;;
-        $_Manual_)
-            vmsg "Not auto-saving.  AUTOSAVE_MODE was set to $AUTOSAVE_MODE"
-            exit_command
-            ;;
-        *)
-            okay_box "$TITLE" "" \
-                "$(pfgt "Unknown auto-save mode %s.  Defaulting to $s." "[b]$AUTOSAVED_MODE[/]" "[b]$_Semi_Automatic_[/]")" ;;
+        1*) ;;
+        2*) persist_opts= ;;
+        3*) vmsg "Not auto-saving.  AUTOSAVE_MODE was set to $AUTOSAVE_MODE"
+            exit_command ;;
+        *)  okay_box "$TITLE" "" \
+                "$(pfgt "Unknown auto-save mode %s.  Defaulting to $s." "[b]$AUTOSAVED_MODE[/]" "[b]$_Automatic_[/]")" ;;
     esac
     [ "$SET_VERBOSE" ] && persist_opts="$persist_opts --verbose"
     [ "$SET_GUI" ]     || persist_opts="$persist_opts --cli"
