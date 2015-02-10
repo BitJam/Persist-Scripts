@@ -70,7 +70,6 @@ bg_info_box -o "$PULSATE"                           \
     ""                                              \
     "$(gt "Checking for existing files and")"       \
     "$(gt "Checking if there is enough room ...")"  \
-    ""
 
 excludes="$(basic_excludes $AUFS_RAM_MP)"
 exclude_size="$(du_size $excludes)"
@@ -164,7 +163,11 @@ kill_bg_info_box
     "$(gt   "See the rsync man page to look up its meaning.")"            \
     ""
 
-[ "$SET_QUIET" ] && exit 0
+if [ "$SET_QUIET" ]; then
+    pfgt $TITLE_COLOR"%s succeeded"$NO_COLOR $ME
+    echo
+    exit 0
+fi
 
 info_box                                              \
     "$(pfgt "%s succeeded" $ME)"                      \
