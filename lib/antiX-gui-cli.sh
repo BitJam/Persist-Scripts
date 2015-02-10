@@ -353,11 +353,11 @@ _dialog_box_cli() {
     local lower_no=$(gt_gui "n")
     case "$type" in
         yes_no)
-            prompt="$PROMPT_COLOR[$upper_yes|$lower_no]"
+            prompt="\n$PROMPT_COLOR[$upper_yes|$lower_no]"
             want="[$lower_yes$upper_yes]*"
             default="$upper_yes";;
         no_yes)
-            prompt="$PROMPT_COLOR[$lower_yes|$upper_no]"
+            prompt="\n$PROMPT_COLOR[$lower_yes|$upper_no]"
             want="[$lower_yes$upper_yes]*"
             default="$upper_no";;
 
@@ -380,8 +380,8 @@ _dialog_box_cli() {
 
     [ "$title" ] && text="$(concat_strings -t "[title]$title[/]")\n$text"
 
-    echo
-    echo -ne "$text\n$prompt$NO_COLOR "
+    #echo
+    echo -ne "$text$prompt$NO_COLOR "
     if ! [ "$want" ]; then
         echo
         return 0
@@ -419,9 +419,9 @@ underline() {
 
 show_cli_title() {
     [ "$SET_GUI" ]   && return
-    [ "$SET_QUIET" ] && return
+    #[ "$SET_QUIET" ] && return
 
-    echo -e "\n$SCRIPT_TITLE_COLOR$UNDERLINE$TITLE$NO_COLOR\n"
+    echo -e "\n$SCRIPT_TITLE_COLOR$UNDERLINE$TITLE$NO_COLOR"
 }
 
 # FIXME: this shouldn't be needed.  It could be vastly improved.
