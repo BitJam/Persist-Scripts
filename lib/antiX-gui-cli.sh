@@ -186,7 +186,8 @@ bg_info_box() {
         GUI_PID=$!
         disown
     else
-        info_box "$@"
+        shift
+        info_box "" "$@"
     fi
 }
 
