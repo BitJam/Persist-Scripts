@@ -155,7 +155,11 @@ elif [ "$SET_SHUT_DOWN" ]; then
     [ "$SET_GUI" ]     || persist_opts="$persist_opts --cli"
 
     vmsg "running perist-save($persist_opts )"
-    sudo persist-save $persist_opts 2>&1  && exit_command
+    #sudo persist-save $persist_opts 2>&1  && exit_command
+    if persist-save $persist_opts 2>&1; then
+        date +%s > /live/config/last-auto-save
+        exit_command
+    fi
 
     [ "$OPT_COMMAND" ] || exit 0
 
