@@ -164,7 +164,8 @@ kill_bg_info_box
     ""
 
 if [ "$SET_QUIET" ]; then
-    pfgt $TITLE_COLOR"%s succeeded"$NO_COLOR $ME
+    #pfgt $TITLE_COLOR"%s succeeded"$NO_COLOR $ME
+    pfgt "%s succeeded" $ME
     echo
     exit 0
 fi
