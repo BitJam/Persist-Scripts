@@ -66,6 +66,7 @@ start_logging
 
 exit_command() {
     [ "$OPT_COMMAND" ]  || exit 0
+    # chvt so we see shutdown messages on tty1
     chvt 1 2>/dev/null
     exec $OPT_COMMAND
 }
