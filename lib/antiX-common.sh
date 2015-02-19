@@ -510,11 +510,11 @@ get_mountpoint() {
     fi
 
     #echo "$dev" | grep -q ^/dev && return
-    
+    local basename=$(basename $dev)
     local loop=$(losetup -a | grep "($dev)" | cut -d: -f1)
-    #echo "loop=<$loop>"
+    [ -z "$loop" -a $basename = rootfs ] && loop=$(losetup -a | grep "/$basename)" | cut -d: -f1 | head -n1)
     [ "$loop" ] || return
-    grep "^$loop " /proc/mounts | cut -d" " -f2
+    grep "^$loop " /proc/mounts | cut -d" " -f2 
 }
 
 get_device() {
