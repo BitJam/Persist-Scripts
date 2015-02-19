@@ -63,6 +63,9 @@ main() {
     mount_if_needed -o loop $PERSIST_FILE $ROOTFS_MP
     make_readwrite $ROOTFS_MP
 
+    check_vid $ROOTFS_MP \
+        || error_box_pf "Version id inside of %s file does not match" "[n]rootfs[/]"
+
     # Check for available space. If ok continue else stop.
     #FIXME: should offer to make a new rootfs if we don't have enough room.
 
@@ -183,6 +186,31 @@ main() {
         "[/]"
 
     exit 0
+}
+
+get_vid() { [ -r "$1" ] && grep ^=== $1 | tail -n 1   ;}
+
+check_vid() {
+    local rootfs_mp=$1 linuxfs_mp=${2:-/live/linux}
+    local linuxfs_vf=$linuxfs_mp/etc/live/version/linuxfs.ver
+    test -e $linuxfs_vf || return 0
+    local linuxfs_vid=$(get_vid $linuxfs_vf)
+    [ "$linuxfs_vid" ] || return 0
+    local rootfs_vf=$rootfs_mp/etc/live/version/rootfs.ver
+    if [ -z "$rootfs_vf" ]; then
+        vmsg "Missing version file in rootfs file system"
+        return 1
+    fi
+    local rootfs_vid=$(get_vid $rootfs_vf)
+    if [ -z "$rootfs_vid" ]; then
+        vmsg "Missing version ID in rootfs file system"
+        return 1
+    fi
+    if [ "$rootfs_vid" != "$linuxfs_vid" ]; then
+        vmsg "Version ID mismatch in rootfs file system"
+        return 1
+    fi
+    return 0
 }
 
 main "$@"
