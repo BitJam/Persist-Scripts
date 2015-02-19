@@ -4,8 +4,8 @@ TO_DIR    := /usr/local
 
 BIN_DIR   := $(PREFIX)$(TO_DIR)/bin
 LIB_DIR   := $(PREFIX)$(TO_DIR)/lib/antiX
-CP        := cp --preserve=mode
-BIN_FILES := $(shell find bin -type f -executable)
+CP        := cp --preserve=mode -P
+BIN_FILES := $(shell find bin -xtype f -executable)
 
 .PHONY: help test install deb
 
