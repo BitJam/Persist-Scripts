@@ -75,7 +75,7 @@ main() {
         "$(gt "Checking for existing files and")"       \
         "$(gt "Checking if there is enough room ...")"  \
 
-    excludes="$(basic_excludes $AUFS_RAM_MP)"
+    excludes="$(rootfs_excludes $AUFS_RAM_MP)"
     exclude_size="$(du_size $excludes)"
 
     pdev_total=$(all_space  $PERSIST_MP)
@@ -138,7 +138,7 @@ main() {
 
     #lifo_string TO_DELETE $exclude_file
 
-    basic_excludes "/" | sort > $exclude_file
+    rootfs_excludes "/" | sort -u > $exclude_file
 
     rsync_opts="-a --delete-excluded --exclude-from=$exclude_file $AUFS_RAM_MP/ $ROOTFS_MP/"
     vmsg "rsync $rsync_opts"
