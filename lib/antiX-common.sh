@@ -7,12 +7,11 @@ VDATE="Thu Dec 13 12:02:05 MDT 2012"
 # GETTEXT_KEYWORD="help_error"
 
 RESTORE_LIVE_DIRS="usr/share/antiX-install"
+EXCLUDES_DIR=/usr/local/share/excludes
 
 antiX_lib=/usr/local/lib/antiX
 
 [ "$Static_antiX_libs" ] || source $antiX_lib/antiX-gui-cli.sh
-
-source $antiX_lib/antiX-excludes.sh
 
 export TEXTDOMAIN=$(basename $0)
 export TEXTDOMAINDIR=/usr/share/locale
@@ -387,35 +386,25 @@ restore_live() {
     done
 }
 
-excludes() {
-    local file dir="$1" && shift
+_excludes() {
+    local file list_file=$1 dir=$2
+    [ -n "${list_file##/*}" ] && list_file=$EXCLUDES_DIR/$list_file
+    shift 2
 
     # append trailing slash to non-empty $dir
-    [ "${#dir}" -gt "0" ] && echo $dir | grep -q "[^/]$" && dir="$dir/"
+    [ -n "${dir%%*/}" ] && dir="$dir/"
 
-    for file in "$@"; do
+    for file in $(grep -v "^\s*#" $list_file | sed -r -e 's=^\s*/=='  -e 's/\s+#.*//') "$@"; do
         echo "$dir$file"
     done
 }
 
-# Files to be excluded by persist-save
-basic_excludes() {
-    local dir="$1" && shift
-    excludes "$dir" $BASIC_EXCLUDES $PERSIST_EXCLUDES "$@"
+rootfs_excludes() {
+    _excludes persist-save-exclude.list "$@"
 }
 
-# Files to be excluded by remaster-live
 remaster_excludes() {
-    local dir="$1" && shift
-    excludes "$dir" $BASIC_EXCLUDES $REMASTER_EXCLUDES "$@"
-}
-
-existing() {
-    local f
-    for f in $@; do
-        f=$(eval echo $f)
-        [ -e "$f" ] && echo "$f"
-    done
+    _excludes live-remaster-exclude.list "$@"
 }
 
 #===== Locking ================================================================
