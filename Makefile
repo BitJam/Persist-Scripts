@@ -20,7 +20,7 @@ install:
 	mkdir -p $(LIB_DIR)
 	$(CP) lib/* $(LIB_DIR)/
 	mkdir -p $(EXCLUDE_DIR)
-	$(CP) lib/* $(LIB_DIR)/
+	$(CP) excludes/* $(EXCLUDE_DIR)/
 	mkdir -p $(LIB_DIR)
 	$(CP) lib/* $(LIB_DIR)/
 	mkdir -p $(BIN_DIR)
