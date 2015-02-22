@@ -344,8 +344,6 @@ mv $tmp_file $new_file
 
 clean_up && trap EXIT
 
-[ "$SET_QUIET" ] && exit 0
-
 info_box -c                                                                                \
     "$(gt "Created new compressed filesystem file:")"                                      \
     ""                                                                                     \
@@ -357,10 +355,21 @@ info_box -c                                                                     
     "$(gt "If there is a problem with the new system:")"                                   \
     "$(pfgt "Use the %s  boot option to return to the current system."  "[b]rollback[/]")" \
     "" ""                                                                                  \
-    "$(gt "You should now create a rootfs.new file.")"                                     \
-    "$(gt "Use the Set up live persistence application.")"                                 \
-    "" ""                                                                                  \
 
+[ -e /live/config/persist-save.conf ] || exit 0
+which persist-makefs &>/dev/null      || exit 0
+
+opts=
+[ "$SET_QUIET"  ] && opts=--quit
+[ "$SET_NO_LOG" ] && opts="$opts --nolog"
+[ "$SET_GUI"    ] || opts="$opts --cli"
+
+yes_no_box
+        "$(gt "Root persistence is enabled")"                \
+        ""                                                   \
+        "$(pfgt "Do you want to make a new %s file now?" "[f]rootfs.new[/]")" \
+        "" "" \
+        && persist-makefs --rootfs $opts
 
 exit 0
 
