@@ -356,7 +356,8 @@ info_box -c                                                                     
     "$(pfgt "Use the %s  boot option to return to the current system."  "[b]rollback[/]")" \
     "" ""                                                                                  \
 
-[ -e /live/config/persist-save.conf ] || exit 0
+[ -e /live/config/persist-save.conf \
+    -o -e /live/config/persist-root ] || exit 0
 which persist-makefs &>/dev/null      || exit 0
 
 opts=
