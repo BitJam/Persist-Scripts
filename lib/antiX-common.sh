@@ -8,6 +8,7 @@ VDATE="Thu Dec 13 12:02:05 MDT 2012"
 
 RESTORE_LIVE_DIRS="usr/share/antiX-install"
 EXCLUDES_DIR=/usr/local/share/excludes
+INITRD_CONF=/live/config/initrd.out
 
 antiX_lib=/usr/local/lib/antiX
 
@@ -272,6 +273,40 @@ make_help() {
 # You MUST either use -q or handle the error when this returns FALSE.
 #------------------------------------------------------------------------------
 read_conf() {
+    if test ! -e $INITRD_CONF; then
+        vmsg "Using old initrd interface"
+        old_read_conf "$@"
+        return $?
+    fi
+
+    vmsg "Using new initrd interface"
+    local quiet=$SET_QUIET
+    [ "$1" = "-q" ] && quiet=true && shift
+    local self=$(basename $ME .sh) flag_file=$1
+    case $self in
+        live-remaster|remaster-live) : ${flag_file:=remasterable} ;;
+                       persist-save) : ${flag_file:=save-persist} ;;
+    esac
+
+    if ! [ "$quiet" ]; then
+        local dir=$(dirname $flag_file)
+        [ -d "$dir" ] || error_box                                                              \
+            "$(pfgt_ac "This script can only be run in a %s environment." "[b]$SYS_TYPE[/b]")"  \
+            "$(pfgt_ac "The %s directory does not exist" "[f]$dir[/]")"                         \
+            "$(pfgt_ac "indicating this is not a %s environment." "[b]$SYS_TYPE[/b]")"          \
+            ""                                                                                  \
+            "$(gt_ac "Exiting.")"
+
+        [ -f "$flag_file" ] || return 1
+    fi
+
+    [ -f "$flag_file" ] || vexit "config file: %s not found." "[f]$flag_file[/]"
+
+    vpf "reading config file: %s" "[f]$INITRD_CONF[/]"
+    source $INITRD_CONF
+}
+
+old_read_conf() {
     local quiet=$SET_QUIET
     [ "$1" = "-q" ] && quiet=true && shift
 
@@ -295,7 +330,6 @@ read_conf() {
     vpf "reading config file: %s" "[f]$conf_file[/]"
     source $conf_file
 }
-
 read_conf_error() {
     local file="$1"
     local script="$2"
