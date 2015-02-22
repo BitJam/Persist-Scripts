@@ -1,3 +1,8 @@
+# NOTE: This file is no longer used as of February 2015.
+#
+# Look in /usr/local/share/excludes/ for the new exclude files.
+# This file is left here for reference and will eventually go away.
+
 BASIC_EXCLUDES="
     lost+found
     run/acpid.socket
