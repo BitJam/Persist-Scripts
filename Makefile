@@ -27,7 +27,7 @@ install: $(EXCLUDE_ORIG) | $(DIRS)
 	$(CP) $(BIN_FILES) $(BIN_DIR)/
 
 $(EXCLUDE_ORIG): $(EXCLUDE_DIR)/%.orig : excludes/*.list | $(EXCLUDE_DIR)
-	cp $< $@
+	cp -f $< $@
 	chmod a-w $@
 
 $(DIRS):
