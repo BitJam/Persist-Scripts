@@ -68,14 +68,13 @@ make_readwrite $BOOT_MP
 
 # Need to ask this early so we get the exclude size right
 if ! [ "$SET_HOME" -o "$SET_NO_HOME" ]; then
-    no_yes_box "$TITLE" "" \
+    no_yes_box "" \
         "$(pfgt "Do you want to save files under %s in the new remaster?" "[f]/home[/]")" \
         ""                                                           \
         && SET_HOME=true
 fi
 
 bg_info_box -o "$PULSATE"                           \
-    "$TITLE"                                        \
     ""                                              \
     "$(gt "Checking for existing files and")"       \
     "$(gt "Checking if there is enough room ...")"  \
