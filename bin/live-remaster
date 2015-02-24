@@ -120,9 +120,11 @@ for t in "${main_text[@]}"; do
     vmsg "$t"
 done
 
+leftovers="rootfs.old rootfs.bad $SQFILE_NAME.new $SQFILE_NAME.old $SQFILE_NAME.bad $SQFILE_NAME.tmp"
+
 BAD_FILES=""
-for ext in new old bad tmp; do
-    [ -e "$SQFILE_FULL.$ext" ] && BAD_FILES="$BAD_FILES $SQFILE_NAME.$ext"
+for file in $leftovers; do
+    [ -e "$SQFILE_DIR/$file" ] && BAD_FILES="$BAD_FILES $file"
 done
 
 kill_bg_info_box
@@ -149,8 +151,8 @@ while [ "$BAD_FILES" ]; do
     done
 
     BAD_FILES=""
-    for ext in new old bad; do
-        [ -e "$SQFILE_FULL.$ext" ] && BAD_FILES="$BAD_FILES $SQFILE_NAME.$ext"
+    for file in $leftovers; do
+        [ -e "$SQFILE_DIR/$file" ] && BAD_FILES="$BAD_FILES $file"
     done
 done
 
