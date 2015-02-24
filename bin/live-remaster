@@ -366,7 +366,7 @@ opts=
 [ "$SET_NO_LOG" ] && opts="$opts --nolog"
 [ "$SET_GUI"    ] || opts="$opts --cli"
 
-yes_no_box
+yes_no_box \
         "$(gt "Root persistence is enabled")"                \
         ""                                                   \
         "$(pfgt "Do you want to make a new %s file now?" "[f]rootfs.new[/]")" \
