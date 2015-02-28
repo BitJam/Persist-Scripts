@@ -192,14 +192,14 @@ main() {
             "${DEVICE_TEXT[@]}"                  \
             "${FILE_TEXT[@]}"  ""
 
-        case "$UI_RESULT" in
+        case $UI_RESULT in
 
-            "$MAKE_ROOTFS")
+            $MAKE_ROOTFS)
                 vmsg "Make rootfs"
                 make_filefs rootfs "$(gt "Create Root")" "" "$MAX_SIZE"
                 ;;
 
-            "$RESIZE_ROOTFS")
+            $RESIZE_ROOTFS)
                 rootfs="$FULL_PATH/rootfs"
                 if [ "$(get_mountpoint $rootfs)" ]; then
                     okay_box -c "[e]Warning[/]" "" \
@@ -223,17 +223,17 @@ main() {
                 mv -f $rootfs.tmp $rootfs
                 ;;
 
-            "$MAKE_ROOTFS_NEW")
+            $MAKE_ROOTFS_NEW)
                 vmsg "Make rootfs.new"
                 make_filefs rootfs.new "$(gt "Create rootfs.new (for remastering)")" "" "$MAX_SIZE"
                 ;;
 
-            "$MAKE_HOMEFS")
+            $MAKE_HOMEFS)
                 vmsg "Make homefs"
                 make_filefs "homefs" "$(gt "Create Home")" "" "$SAFE_AVAIL" "$(gt "Create Home")"
                 ;;
 
-            "$RESIZE_HOMEFS")
+            $RESIZE_HOMEFS)
                 vmsg "Resize homefs"
                 homefs="$FULL_PATH/homefs"
                 make_filefs "homefs.new" "$(gt "Resize Home")" "" "$SAFE_AVAIL" "$(gt "Resize Home")" \
@@ -242,24 +242,24 @@ main() {
                 copy_filefs "$homefs" "$homefs.new" "${USED_SPACE[homefs]}"
                 ;;
 
-            "$CHANGE_DEV")
+            $CHANGE_DEV)
                 vmsg "Change device"
                 change_device
                 ;;
 
-            "$CHANGE_PATH")
+            $CHANGE_PATH)
                 vmsg "Change path"
                 change_path
                 ;;
 
-            "$EXPLORE_MENU")
+            $EXPLORE_MENU)
                 vmsg "Explore menu"
                 explore_menu
                 ;;
-            "$FIX_CHOICE")
+            $FIX_CHOICE)
                 fix_files_menu
                 ;;
-            "$QUIT")
+            $QUIT)
                 #exit
                 noisy_yes_no_box "$TITLE" "$(gt "Really Quit?")" && exit
                 ;;
