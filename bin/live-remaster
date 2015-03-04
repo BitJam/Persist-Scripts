@@ -166,7 +166,7 @@ noisy_yes_no_box                                    \
 
 if which alsactl &>/dev/null; then
     vpf "Storing volume settings"
-    alsactl store
+    alsactl --ignore store
 fi
 
 _General_="$(gt "General")"
