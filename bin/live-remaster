@@ -294,6 +294,7 @@ if [ "$SET_GUI" ]; then
     while true; do
 
         if ! [ -d "/proc/$mksq_pid" ]; then
+            sync
             kill -9 $GUI_PID &> /dev/null
             remaster_done="true"
             break
@@ -304,11 +305,13 @@ if [ "$SET_GUI" ]; then
                 "$(gt "Do you REALLY want to stop midway?")"; then
                 kill $mksq_pid
                 rm -f $tmp_file
+                sync
                 sleep 1
                 exit
             fi
 
             if [ -d "/proc/$mksq_pid" ]; then
+                sync
                 remaster_done="true"
                 break
             fi
@@ -317,10 +320,10 @@ if [ "$SET_GUI" ]; then
         fi
 
         sleep 1
-
     done
 else
     $MKSQ_COMMAND
+    sync
 fi
 
 remaster_error() {
