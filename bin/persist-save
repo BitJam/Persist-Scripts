@@ -147,10 +147,9 @@ main() {
 
     #--- now do the rsync
     rsync -a $rsync_opts
-
     rsync_ret=$?
-
-    #rsync_ret=17
+    # sync now because we are about to umount
+    sync
 
     full_rootfs=$(all_space  $ROOTFS_MP)
     used_rootfs=$(used_space $ROOTFS_MP)
@@ -168,9 +167,7 @@ main() {
         ""
 
     if [ "$SET_QUIET" ]; then
-        #pfgt $TITLE_COLOR"%s succeeded"$NO_COLOR $ME
-        pfgt "%s succeeded" $ME
-        echo
+        okay_box -o --timeout=2 "$(pfgt "%s succeeded" $ME)"
         exit 0
     fi
 
