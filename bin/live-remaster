@@ -169,6 +169,20 @@ if which alsactl &>/dev/null; then
     alsactl --ignore store
 fi
 
+gzip_option="gzip $(gt "(compresses faster)")"
+  xz_option="xz $(gt "(compresses better)")"
+
+combo_box compression-type "$gzip_option!$xz_option"                         \
+        "$TITLE" ""                                                          \
+        "$(gt "Please choose the type of compression to use")"               \
+        "$(pfgt "%s will take less time" "[b]gzip[/b]")"                     \
+        "$(pfgt "%s will result in a smaller file" "[b]xz[/b]")"
+
+case $UI_RESULT in
+    xz*) MKSQ_OPTS="$MKSQ_OPTS -comp xz"   ;;
+  gzip*) MKSQ_OPTS="$MKSQ_OPTS -comp gzip" ;;
+esac
+
 _General_="$(gt "General")"
 _Personal_="$(gt "Personal")"
 
@@ -252,7 +266,7 @@ exclude_file=$CONF_DIR/remaster.exclude
 remaster_excludes "" $pretend_excludes | sort -u > $exclude_file
 
 #--- create the tmp/new squashfs file
-MKSQ_OPTS="$FROM $tmp_file -wildcards -ef $exclude_file"
+MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file -wildcards -ef $exclude_file"
 #MKSQ_OPTS="$FROM $tmp_file"
 MKSQ_COMMAND="/usr/local/bin/run-mksquashfs $ret_file $MKSQ_OPTS"
 
