@@ -669,7 +669,7 @@ mount_if_needed() {
 }
 
 my_umount() {
-    umount "$1" &>/dev/null || umount -l "$1"
+    umount -l "$1"
 }
 
 # mount_any() {
