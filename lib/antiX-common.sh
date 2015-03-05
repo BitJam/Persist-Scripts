@@ -501,9 +501,9 @@ used_space() {
      df -Pm "$1" | awk '{size=$3}END{print size}'
 }
 
-free_space() {
-     df -Pm "$1" | awk '{size=$4}END{print size}'
-}
+#free_space() {
+#     df -Pm "$1" | awk '{size=$4}END{print size}'
+#}
 
 fs_type() {
     df -PmT "$1" | awk '{type=$2}END{print type}'
@@ -513,10 +513,28 @@ fs_percent() {
     df -Pm "$1" | awk '{percent=$5}END{print percent}'
 
 }
+
 du_size() {
     $DU_CMD -scm "$@" 2>/dev/null | tail -n 1 | cut -f1
 }
 
+# This compensates for sparse rootfs and homefs files one directory down from
+# the mountpoint.  This is far from perfect but I hope it is a reasonable
+# compromise that will work well for most people in most situations.
+free_space() {
+    local mp=$1
+    local free=$(df -m $mp | awk '{size=$4}END{print size}')
+    local sparse new_free
+    for sparse in $mp/*/rootfs $mp/*/homefs; do
+        test -e $sparse || continue
+        real=$(( $( stat -c %s $sparse) / 1024 / 1024))
+        orig=$(du -m $sparse | cut -f1)
+        new_free=$((free - $real + $orig))
+        #printf "sparse: r=%4s o=%4s of=%5s nf=%5s %s\n" $real $orig $free $new_free $sparse
+        free=$new_free
+    done
+    echo $free
+}
 
 #===== Mounting ===============================================================
 
