@@ -1,0 +1,95 @@
+#!/bin/bash
+
+# GETTEXT_KEYWORD="gt"
+# GETTEXT_KEYWORD="pfgt"
+
+source /usr/local/lib/antiX/antiX-common.sh  "$@"
+
+SPEAKER_TEST_OPTS="-c 2 -t wav -l 2"
+ASOUND_FILE=$HOME/.asoundrc
+main() {
+    read_options "$@"
+    show_cli_title
+
+    while : ; do
+        local card_file=/proc/asound/cards
+        test -r $card_file || card_file=/dev/null
+        local cards=$(sed -n -r 's/[0-9 ]+\[//p' $card_file | sed 's/\s*\]:/:/')
+
+        vmsg "\nSound cards:\n$cards"
+
+        test -n "$cards" || error_box "$(gt "No sound cards/devices were found")"
+
+        if [ "$(echo "$cards" | wc -l)" -lt 2 ]; then
+            error_box "$(gt "Only one sound was card found.")"
+        fi
+
+        local card scard_options=
+        while read card; do
+            scard_options="$scard_options${scard_options:+!}$card"
+        done <<Read_Cards
+$(echo "$cards")
+Read_Cards
+        test -n "$scard_options" || error_box "$(gt "No sound cards/devices were found")"
+
+        local prev_card=$(sed -n -r 's/^\s*defaults.pcm.!card\s+(.*)/\1/p' $ASOUND_FILE | head -n 1)
+        local prev_line=
+        [ "$prev_card" ] && prev_line=$(pfgt "Current default is %s" "[b]$prev_card[/b]")
+        vmsg "prev_card: $prev_card"
+
+        local _quit_="$(gt "Quit")"
+        scard_options="$scard_options!$_quit_"
+        combo_box "" "$scard_options" "$(gt "Please Select sound card")" "$prev_line" ""
+        case $UI_RESULT in
+            $_quit_) vexit "Exit at user request" ;;
+        esac
+        local scard=${UI_RESULT%%:*}
+        write_asoundrc "$scard"
+
+        if ! which speaker-test &>/dev/null; then
+            okay_box \
+                "$(pfgt "Sound card set to %s" "[b]$scard[/b]")"
+            exit 0
+        fi
+
+        yes_no_box               \
+            "$(gt "Sound test")" \
+            ""                   \
+            "$(pfgt "Sound card set to %s" "[b]$scard[/b]")"     \
+            ""                                                  \
+            "$(gt "Would you like to test if the sound works?")"\
+            || exit 0
+        bg_info_box                           \
+            "$TITLE"                                        \
+            ""                                              \
+            "   $(gt "Testing sound for up to 6 seconds")"
+
+        speaker-test $SPEAKER_TEST_OPTS &>/dev/null
+        local result=$?
+        kill_bg_info_box
+        if [ "$result" -eq 0 ]; then
+            no_yes_box \
+                "$(gt "Test succeeded")"                         \
+                "$(gt "(Could connect to the selected device)")" \
+                ""                                               \
+                "" "Do you want to set the card again?" || exit 0
+        else
+            yes_no_box \
+                "$(gt "Test failed")"                                \
+                "$(gt "(Could not connect to the selected device)")" \
+                ""                                                   \
+                "Do you want to set the card again?" || exit 0
+        fi
+
+    done
+}
+
+write_asoundrc() {
+    local card=$1
+    cat <<Asoundrc > $ASOUND_FILE
+defaults.pcm.!card $card
+defaults.ctl.!card $card
+Asoundrc
+}
+
+main "$@"
