@@ -170,7 +170,12 @@ main() {
         ""
 
     if [ "$SET_QUIET" ]; then
-        okay_box -o --timeout=2 "$(pfgt "%s succeeded" $ME)"
+        if [ "$SET_GUI" ]; then
+            okay_box -o --timeout=2 "$(pfgt "%s succeeded" $ME)"
+        else
+            pfgt "%s succeeded" $ME
+        fi
+
         exit 0
     fi
 
