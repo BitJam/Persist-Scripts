@@ -11,10 +11,11 @@
 /etc/udev/rules.d/*-persistent-cd.rules
 /etc/udev/rules.d/*-persistent-net.rules
 /lost+found
+/media/*
 /proc
 /root/.bash_history
 /sys
-/tmp
+/tmp/*
 /var/cache/apt/*.bin
 /var/cache/apt/archives/*.deb
 /var/cache/debconf/*-old
@@ -32,4 +33,4 @@
 /var/log/
 /var/mail/*
 /var/spool/mail/*
-/var/tmp
+/var/tmp/*
