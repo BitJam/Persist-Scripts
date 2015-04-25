@@ -8,6 +8,8 @@ source $antiX_lib/antiX-common.sh     "$@"
 
 TITLE="$(gt "antiX Root Persistence Auto-Save Configuration")"
 
+LOCKOUT_TIME=15
+
 CONF_FILE=/etc/live/config/persist-config.conf
 
      _Automatic_="$(gt "Automatic")"
@@ -137,6 +139,22 @@ elif [ "$SET_SHUT_DOWN" ]; then
 
         only_once_box
         edit_config
+    fi
+
+    local last_save_file=/live/config/last-auto-save
+    if test -r $last_save_file; then
+        local prev=$(cat $last_save_file)
+        local now=$(date +%s)
+        local diff=$(( new - prev))
+        if [ $diff -le $LOCKOUT_TIME ]; then
+            echo_live "Already autosaved less then %s seconds ago" $LOCKOUT_TIME
+            echo_live "Won't autosave again"
+
+            # Should we rest this or not??
+            date +%s > /live/config/last-auto-save
+
+            exit_command
+        fi
     fi
 
     source $CONF_FILE
