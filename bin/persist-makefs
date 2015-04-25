@@ -9,6 +9,13 @@
 source /usr/local/lib/antiX/antiX-common.sh  "$@"
 
 SAFETY_MARGIN=10
+  rootfs_SIZE_PARAM="min_size=250 mid_size=100 max_size=4000 factor=50"
+  homefs_SIZE_PARAM="min_size=250 mid_size=100 max_size=3000 factor=25"
+
+    VFAT_MKFS_SIZES="250 375 500 750 1000 1500 2000 2500 3000 4000"
+         MKFS_SIZES="250 375 500 750 1000 1500 2000 2500 3000 4000 5000 6000"
+   MKFS_FREE_MARGIN=20
+       SCREEN_WIDTH=$(stty size 2>/dev/null | cut -d" " -f2)
 
 # Files listed on the main screen
 ACTIVE_FILES="rootfs rootfs.bak homefs homefs.new homefs.old rootfs.old linuxfs.old"
