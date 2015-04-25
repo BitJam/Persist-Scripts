@@ -393,6 +393,7 @@ old_read_conf() {
     vpf "reading config file: %s" "[f]$conf_file[/]"
     source $conf_file
 }
+
 read_conf_error() {
     local file="$1"
     local script="$2"
