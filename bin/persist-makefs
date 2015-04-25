@@ -291,11 +291,26 @@ main() {
     done
 }
 
-# push_text() {
-#     for t in "$@"; do
-#         MAIN_TEXT[${#MAIN_TEXT[*]}]="$t"
-#     done
-# }
+makefs() {
+    local file=$1  type=$2  size=$3
+    mkdir -p $(dirname $file)                                                    || return 1
+    time_cmd_quiet dd if=/dev/zero of=$file bs=1M count=0 seek=$size             || return 2
+    sync
+    time_cmd_quiet mkfs.$type -F $file                                           || return 3
+}
+
+default_makefs_size() {
+    local avail=$1  size=$3  params
+    eval params=\$$2
+    eval local $params
+    [ "$avail" -lt $mid_size ] && factor=1
+    [ "$size" ] || size=$((mid_size + factor * ( avail - mid_size ) / 100))
+    [ $size -gt $max_size ] && size=$max_size
+    [ $size -gt $avail    ] && size=$avail
+    [ $size -lt $min_size ] && return 1
+    echo $size
+    return 0
+}
 
 select_ftype() {
     local choice ftype
@@ -304,28 +319,23 @@ select_ftype() {
     done
     combo_box "$(gt "File System Type")" "$choice" "" ""
     FTYPE="$(echo $UI_RESULT | cut -d: -f1)"
-
 }
 
 make_filefs() {
-    local file=$1  ptype=$2  min_size=$3  max_size=$4
+    local file=$1  ptype=$2  min_size=$3  max_size=${4:-$MAX_SIZE}
 
     local full="$FULL_PATH/$file"
-    vmsg "make_filefs(\"$1\", \"$2\", \"$3\", \"$4\")"
+    #vmsg "make_filefs(\"$1\", \"$2\", \"$3\", \"$4\")"
     if [ -f "$full" ]; then
         yes_no_box "$TITLE" ""                                       \
             "$(pfgt "The file %s already exists" "[f]$file[/]")" ""  \
             "${INFO_HASH[$file]}" ""                                 \
             "$(gt "Do you want to over-write it?")" ""               \
-            || return
+            || return 0
     fi
 
-    local text=(
-        "$(gt "Please select for the new partition")"
-        ""
-        "$(pfgt "For %s persistence" "[b]$ptype[/]")"
-    )
-    if ! select_size -min "$min_size" -Max "$max_size" "$msg"; then
+    local text="$(gt "Please select size of the new file system")\n\n$(pfgt "For %s persistence" "[b]$file[/]")"
+    if ! select_size -min "$min_size" -Max "$max_size" "" "$text"; then
         warn_box "$TITLE" "" \
             "$(pfgt "Not enough space on device to %s" "$ptype")" ""
 
@@ -336,14 +346,34 @@ make_filefs() {
     #select_ftype
     FTYPE=ext4
     vmsg "FTYPE=$FTYPE"
+    local last_line=$(gt "Please wait")
+    [ "$DEV_FS" = vfat ] && \
+        last_line=$(pfgt "Warning: this can take several minutes per Gig on a %s file system" "[b]$DEV_FS[/b]")
 
     make_path_if_needed "$DEV_MP" "$P_PATH"
 
-    if ! _make_filefs "$full" "$size" "$FTYPE"  "$opts"; then
-        warn_box "" "$(pfgt "Was unable to to create file %s" "[f]$file[/]")"
-        rm -f $full
-        return 2
-    fi
+    bg_info_box -o "$PULSATE"                             \
+        ""                                                \
+        "$(pfgt "Creating file %s" [f]$file[/])"          \
+        "$(pfgt "Size: %s  filesystem: %s" $size $FTYPE)" \
+        ""                                                \
+        "$last_line"                                      \
+        ""
+
+    kill_bg_info_box
+
+    makefs "$full" $FTYPE $size;
+    local ret=$?
+
+    case $ret in
+        1) warn_box "" "$(pfgt "Was unable to create directory for file %s"         "[f]$file[/]")"  ;;
+        2) warn_box "" "$(pfgt "Was unable to create file %s"                       "[f]$file[/]")"  ;;
+        3) warn_box "" "$(pfgt "Was unable to make %s filesystem on file %s" $FTYPE "[f]$file[/]")"  ;;
+    esac
+
+    [ $ret -eq 0 ] && return $ret
+    rm -f $full
+    return 2
 
     if [ ! -f $full ]; then
         warn_box "" "$(pfgt "The file %s is missing" "[f]$file[/]")"
@@ -429,7 +459,7 @@ change_device() {
 
         DEV=$UI_RESULT
 
-        mount_device $DEV
+        mount_device $DEV  # Assigns to $DEV_MP
 
         vmsg "Device: [n]$DEV[/],   Mountpoint: [f]$DEV_MP[/]"
 
