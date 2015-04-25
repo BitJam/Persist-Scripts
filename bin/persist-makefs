@@ -83,7 +83,7 @@ d,dev,device|o|DEV
    r,rootfs||ROOTFS
 "
 
-main() {
+prep_main() {
     add_options "$OPTIONS"
     read_options "$@"
 
@@ -96,17 +96,32 @@ main() {
     start_logging
     trap clean_up EXIT
     create_lock
+}
 
+main() {
     # return after errors in mount_if_needed()
     nonfatal_mount_errors
 
     P_PATH=$PERSIST_PATH
-    [ "$P_PATH" ] || P_PATH=$SQFILE_PATH
-    [ "$P_PATH" ] || P_PATH=$DISTRO
+    : ${P_PATH:=$SQFILE_PATH}
+    : ${P_PATH:=$DISTRO}
 
-    DEV=$PERSIST_DEV
-    [ "$DEV" ] || DEV=$BOOT_DEV
-    [ "$OPT_DEV" ] && DEV=$OPT_DEV
+    # Let command line override
+    DEV=$OPT_DEV
+
+    # First try to find the persist device (if any)
+    while [ -z "$DEV" -a -n "$PERSIST_UUID" ]; do
+        DEV=$(blkid -U "$PERSIST_UUID")
+        [ "$DEV" ] && break
+        no_yes_box \
+            "$(pfgt "The persistence device with UUID %s was not found" "[n]$PERSIST_UUID[/]")" \
+            "$(pfgt "Please plug in the persistence device if you want to use it.")" \
+            ""                                                                      \
+            "$(gt "Do you want to try again?")" || break
+    done
+
+    # If there is no persist device then use the boot device
+    [ -z "$DEV" -a -n "$BOOT_UUID" ] && ${DEV:=$(blkid -U $BOOT_UUID)}
 
     if ! [ -b "$DEV" ]; then
         okay_box  "$TITLE" "" \
@@ -136,7 +151,7 @@ main() {
 
         gather_device_info
         vmsg "Make rootfs.new"
-        make_filefs rootfs.new "$(gt "Create rootfs.new (for remastering)")" "" "$MAX_SIZE"
+        make_filefs rootfs.new "$(gt "Create rootfs.new (for remastering)")" ""
         exit
 
     elif [ "$SET_EXPLORE" ]; then
@@ -145,6 +160,8 @@ main() {
         explore_menu
         exit
     fi
+
+    LIVE_FS_TYPE=$(df -T $DEV | awk '{print $2}')
 
     while true; do
 
@@ -203,7 +220,7 @@ main() {
 
             $MAKE_ROOTFS)
                 vmsg "Make rootfs"
-                make_filefs rootfs "$(gt "Create Root")" "" "$MAX_SIZE"
+                make_filefs rootfs "$(gt "Create Root")" ""
                 ;;
 
             $RESIZE_ROOTFS)
@@ -215,8 +232,7 @@ main() {
                     continue
                 fi
                 vmsg "Resize rootfs"
-                make_filefs rootfs.tmp "$(gt "Resize Root")" "${USED_SPACE[rootfs]}" "$MAX_SIZE" \
-                    || continue
+                make_filefs rootfs.tmp "$(gt "Resize Root")" "${USED_SPACE[rootfs]}"  && continue
 
                 if ! [ "$MADE_FS" = "rootfs.tmp" ]; then
                     noisy_yes_no_box "$TITLE" "" \
@@ -232,7 +248,7 @@ main() {
 
             $MAKE_ROOTFS_NEW)
                 vmsg "Make rootfs.new"
-                make_filefs rootfs.new "$(gt "Create rootfs.new (for remastering)")" "" "$MAX_SIZE"
+                make_filefs rootfs.new "$(gt "Create rootfs.new (for remastering)")" ""
                 ;;
 
             $MAKE_HOMEFS)
@@ -244,7 +260,7 @@ main() {
                 vmsg "Resize homefs"
                 homefs="$FULL_PATH/homefs"
                 make_filefs "homefs.new" "$(gt "Resize Home")" "" "$SAFE_AVAIL" "$(gt "Resize Home")" \
-                    || continue
+                    && continue
 
                 copy_filefs "$homefs" "$homefs.new" "${USED_SPACE[homefs]}"
                 ;;
@@ -708,6 +724,8 @@ unmount_device() {
 gather_device_info() {
     FULL_PATH="$DEV_MP/$P_PATH"
 
+    DEV_FS=$(df -T $DEV | tail -n1 | awk '{print $2'})
+
     FS_TOTAL=$(all_space  $DEV_MP)
     FS_AVAIL=$(free_space $DEV_MP)
     SAFE_AVAIL=$(( $FS_AVAIL - $SAFETY_MARGIN ))
@@ -716,6 +734,11 @@ gather_device_info() {
     SAFE_RAM=$(($TOTAL_RAM + $SAFETY_MARGIN))
 
     MAX_SIZE=$(min_of $SAFE_RAM $SAFE_AVAIL)
+
+    [ "$DEV_FS" = vfat -a $MAX_SIZE -gt 4095 ] && MAX_SIZE=4095
+
+    echo "dev_fs: $DEV_FS"
+    echo "max_size: $MAX_SIZE"
 
     DEVICE_TEXT=(                                                    \
         "[fixed]"                                                    \
@@ -754,4 +777,5 @@ gather_file_info() {
 
 }
 
-main "$@"
+prep_main "$@"
+main
