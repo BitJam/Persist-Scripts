@@ -878,8 +878,6 @@ delete_files_rf() {
 clean_up() {
     vmsg "$(echo "[w]Cleaning up ...[/]")"
 
-    kill_bg_info_box -f
-
     restore_umount
     restore_readonly
     delete_files
@@ -898,6 +896,10 @@ clean_up() {
 
     [ "$SET_DUMP_ALL" ] && printenv | sed "s/^\([A-Za-z_]\+\)/$PARAM_COLOR\1$NO_COLOR/"
     [ "$SET_DUMP"     ] && printenv | grep "^[a-z][a-z_]*="    | sed "s/^\([a-z_]\+\)/$PARAM_COLOR\1$NO_COLOR/"
+
+    # If we need this then do it last.  Why is the above so slow?
+    #kill_bg_info_box -f
+
     return 0
 }
 
