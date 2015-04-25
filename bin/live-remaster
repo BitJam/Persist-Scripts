@@ -172,11 +172,13 @@ fi
 gzip_option="gzip $(gt "(compresses faster)")"
   xz_option="xz $(gt "(compresses better)")"
 
-combo_box compression-type "$gzip_option!$xz_option"                         \
-        "$TITLE" ""                                                          \
-        "$(gt "Please choose the type of compression to use")"               \
-        "$(pfgt "%s will take less time" "[b]gzip[/b]")"                     \
-        "$(pfgt "%s will result in a smaller file" "[b]xz[/b]")"
+#combo_box compression-type "$gzip_option!$xz_option"                         \
+#        "$TITLE" ""                                                          \
+#        "$(gt "Please choose the type of compression to use")"               \
+#        "$(pfgt "%s will take less time" "[b]gzip[/b]")"                     \
+#        "$(pfgt "%s will result in a smaller file" "[b]xz[/b]")"
+
+UI_RESULT=xz
 
 case $UI_RESULT in
     xz*) MKSQ_OPTS="$MKSQ_OPTS -comp xz"   ;;
