@@ -259,6 +259,69 @@ make_help() {
     done
 }
 
+
+#===== Timing commands ========================================================
+
+get_time() { cut -d" " -f22 /proc/self/stat ;}
+
+show_time() {
+    msg "$(printf "$green%ss$yellow %s" $(get_seconds) "$*")"
+}
+
+get_seconds() {
+    local dt=${1:-$(get_time)}
+    printf "%03d" $dt | sed -r 's/(..)$/.\1/'
+}
+
+bogo_meter() {
+    local width=${1:-$SCREEN_WIDTH} delay=60  dot=.
+    local cnt=$(( width * 80 / 100 ))
+    local sleep=$(( 1000000 * delay / cnt ))
+    while true; do
+        for s in $(seq 1 $cnt); do
+            usleep $sleep
+            echo -n "$dot"
+        done
+        echo
+    done
+}
+
+time_cmd() {
+    local t0=$(get_time)
+    (bogo_meter)&
+    local pid=$!
+    vmsg ">> $*"
+    "$@"
+    local ret=$?
+    local t1=$(get_time)
+    local secs=$(get_seconds $((t1 - t0)))
+    disown $pid 2>/dev/null
+    kill -9 $pid 2>/dev/null
+    echo
+    vmsg "$(pf "took %s seconds" $secs)"
+    return $ret
+}
+
+time_cmd_quiet() {
+    [ "$SET_VERBOSE" ] || echo ">> $*"
+    vmsg ">> $*"
+
+    (bogo_meter)&
+    local pid=$!
+
+    local t0=$(get_time)
+    "$@"  1>>$LOG_FILE 2>>$LOG_FILE
+    local ret=$?
+    local t1=$(get_time)
+    local secs=$(get_seconds $((t1 - t0)))
+    disown $pid 2>/dev/null
+    kill -9 $pid 2>/dev/null
+    echo
+    vmsg "$(pf "took %s seconds" $secs)"
+    return $ret
+}
+
+
 #------------------------------------------------------------------------------
 # Function: read_conf [-q] [config_file]
 #
