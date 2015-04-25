@@ -1,6 +1,8 @@
 # GETTEXT_KEYWORD="gt_gui"
 # GETTEXT_KEYWORD="pfgt_gui"
 
+LOG_FILE=/dev/null
+
 gt_gui() {
     gettext -d antiX-bash-libs "$1"
 }
@@ -29,16 +31,18 @@ fmt_size() {
 
 start_logging() {
     [ "$SET_NO_LOG" ] && return
+    local me=$(basename $0)
+    LOG_FILE=/var/log/live/$me.log
 
-    LOG_FILE=/var/log/live/$(basename $0).log
-
-    [ $# -gt 0 ] && LOG_FILE=$HOME/$(basename $0).log
+    [ $# -gt 0 ] && LOG_FILE=$HOME/$me.log
     mkdir -p $(dirname $LOG_FILE)
 
     # tee stderr to log file.  Don't remove the space.
     # FIXME: comment out for now to avoid err message when called from inside initrd
     exec 2> >(tee -a $LOG_FILE)
+
     echo "--------------------------------------------------------------------" >> $LOG_FILE
+    echo "$me started: $(date "+%F %T")" >> $LOG_FILE
 }
 
 # Verbose console messages
@@ -50,7 +54,8 @@ vmsg() {
     [ "$SET_NO_LOG" ] && return
 
     #echo -e "$(date "+%F %T"): $text"  | sed -r "s:\x1B\[[0-9;]*[mK]::g" >> $LOG_FILE
-    echo -e "$(date "+%F %T"): $text" >> $LOG_FILE
+    #echo -e "$(date "+%F %T"): $text" >> $LOG_FILE
+    echo -e "$text" >> $LOG_FILE
 }
 
 # Verbose exit, explaining why we are leaving.
