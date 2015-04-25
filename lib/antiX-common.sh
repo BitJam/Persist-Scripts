@@ -593,9 +593,10 @@ free_space() {
         real=$(( $( stat -c %s $sparse) / 1024 / 1024))
         orig=$(du -m $sparse | cut -f1)
         new_free=$((free - $real + $orig))
-        #printf "sparse: r=%4s o=%4s of=%5s nf=%5s %s\n" $real $orig $free $new_free $sparse
         free=$new_free
+
     done
+    [ $free -lt 0 ] && free=0
     echo $free
 }
 
