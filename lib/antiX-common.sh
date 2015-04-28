@@ -295,31 +295,39 @@ time_cmd() {
     vmsg ">> $*"
     "$@"
     local ret=$?
+    sync
     local t1=$(get_time)
     local secs=$(get_seconds $((t1 - t0)))
     disown $pid 2>/dev/null
     kill -9 $pid 2>/dev/null
     echo
-    vmsg "$(pf "took %s seconds" $secs)"
+    vmsg "$(pf "<< took %s seconds" $secs)"
     return $ret
 }
 
 time_cmd_quiet() {
-    [ "$SET_VERBOSE" ] || echo ">> $*"
+
+    if [ ! "$SET_VERBOSE" ]; then
+        if [ "$SET_QUIET" ]; then
+            echo ">> $1 ..."
+        else
+            echo ">>$*"
+        fi
+    fi
     vmsg ">> $*"
 
     (bogo_meter)&
     local pid=$!
-
     local t0=$(get_time)
     "$@"  1>>$LOG_FILE 2>>$LOG_FILE
+    sync
     local ret=$?
     local t1=$(get_time)
     local secs=$(get_seconds $((t1 - t0)))
     disown $pid 2>/dev/null
     kill -9 $pid 2>/dev/null
     echo
-    vmsg "$(pf "took %s seconds" $secs)"
+    vmsg "$(pf "<< took %s seconds" $secs)"
     return $ret
 }
 
