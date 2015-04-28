@@ -286,6 +286,7 @@ restore_live
 #
 #------------------------------------------------------------------------------
 
+T0=$(get_time)
 if [ "$SET_GUI" ]; then
     ($GUI_TERM $TERM_TITLE_OPT "$(gt "Remastering -- DO NOT CLOSE")" $TERM_OPTS $MKSQ_COMMAND &>/dev/null)&
     mksq_pid=$!
@@ -323,10 +324,15 @@ if [ "$SET_GUI" ]; then
 
         sleep 1
     done
+
 else
     $MKSQ_COMMAND
     sync
 fi
+
+T1=$(get_time)
+secs=$(get_seconds $((T1 - T0)))
+vmsg "mksquashfs took $secs seconds"
 
 remaster_error() {
     local fmt="$(gettext "$1")" && shift
