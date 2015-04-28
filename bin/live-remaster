@@ -57,7 +57,7 @@ read_conf || read_conf_error "linuxfs"
 show_cli_title
 
 need_root
-start_logging
+start_logging live-remaster
 
 trap clean_up EXIT
 create_lock
