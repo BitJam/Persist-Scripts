@@ -293,7 +293,6 @@ makefs() {
     local file=$1  type=$2  size=$3
     mkdir -p $(dirname $file)                                                    || return 1
     time_cmd_quiet dd if=/dev/zero of=$file bs=1M count=0 seek=$size             || return 2
-    sync
     time_cmd_quiet mkfs.$type -F $file                                           || return 3
 }
 
