@@ -16,6 +16,9 @@ antiX_lib=/usr/local/lib/antiX
 export TEXTDOMAIN=$(basename $0)
 export TEXTDOMAINDIR=/usr/share/locale
 
+SCREEN_WIDTH=$(stty size 2>/dev/null | cut -d" " -f2)
+: ${SCREEN_WIDTH:=70}
+
 # This is needed for restarting
 CMDLINE_ARGS=("$@")
 
