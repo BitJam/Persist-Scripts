@@ -276,12 +276,12 @@ get_seconds() {
 }
 
 bogo_meter() {
-    local width=${1:-$SCREEN_WIDTH} delay=60  dot=.
+    local width=${SCREEN_WIDTH:-70} delay=60  dot=.
     local cnt=$(( width * 80 / 100 ))
-    local sleep=$(( 1000000 * delay / cnt ))
+    local sleep=$(echo $delay $cnt | awk '{printf "%.2f\n", $1/$2}')
     while true; do
         for s in $(seq 1 $cnt); do
-            usleep $sleep
+            sleep $sleep
             echo -n "$dot"
         done
         echo
