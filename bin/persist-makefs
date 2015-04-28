@@ -765,9 +765,6 @@ gather_device_info() {
 
     [ "$DEV_FS" = vfat -a $MAX_SIZE -gt 4095 ] && MAX_SIZE=4095
 
-    echo "dev_fs: $DEV_FS"
-    echo "max_size: $MAX_SIZE"
-
     DEVICE_TEXT=(                                                    \
         "[fixed]"                                                    \
         "$(fmt_size "total space on device"  $FS_TOTAL)"             \
