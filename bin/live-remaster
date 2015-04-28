@@ -181,8 +181,8 @@ gzip_option="gzip $(gt "(compresses faster)")"
 UI_RESULT=xz
 
 case $UI_RESULT in
-    xz*) MKSQ_OPTS="$MKSQ_OPTS -comp xz"   ;;
-  gzip*) MKSQ_OPTS="$MKSQ_OPTS -comp gzip" ;;
+    xz*) COMP_OPT="-comp xz"   ;;
+  gzip*) COMP_OPT="-comp gzip" ;;
 esac
 
 _General_="$(gt "General")"
@@ -268,11 +268,11 @@ exclude_file=$CONF_DIR/remaster.exclude
 remaster_excludes "" $pretend_excludes | sort -u > $exclude_file
 
 #--- create the tmp/new squashfs file
-MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file -wildcards -ef $exclude_file"
+MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $COMP_OPT -wildcards -ef $exclude_file"
 #MKSQ_OPTS="$FROM $tmp_file"
 MKSQ_COMMAND="/usr/local/bin/run-mksquashfs $ret_file $MKSQ_OPTS"
 
-#vmsg "mksquashfs options: $MKSQ_OPTS"
+vmsg "mksquashfs options: $MKSQ_OPTS"
 
 restore_live
 
