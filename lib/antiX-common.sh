@@ -9,7 +9,6 @@ VDATE="Thu Dec 13 12:02:05 MDT 2012"
 RESTORE_LIVE_DIRS="usr/share/antiX-install"
 EXCLUDES_DIR=/usr/local/share/excludes
 INITRD_CONF=/live/config/initrd.out
-
 antiX_lib=/usr/local/lib/antiX
 
 [ "$Static_antiX_libs" ] || source $antiX_lib/antiX-gui-cli.sh
