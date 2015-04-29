@@ -34,7 +34,7 @@ start_logging() {
     local me=${1:-$(basename $0)}
     LOG_FILE=/var/log/live/$me.log
 
-    [ $# -gt 0 ] && LOG_FILE=$HOME/$me.log
+    test -w /var/log/live || LOG_FILE=$HOME/$me.log
     mkdir -p $(dirname $LOG_FILE)
 
     # tee stderr to log file.  Don't remove the space.
