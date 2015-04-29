@@ -652,7 +652,7 @@ get_mountpoint() {
     local loop=$(losetup -a | grep "($dev)" | cut -d: -f1)
     [ -z "$loop" -a $basename = rootfs ] && loop=$(losetup -a | grep "/$basename)" | cut -d: -f1 | head -n1)
     [ "$loop" ] || return
-    grep "^$loop " /proc/mounts | cut -d" " -f2 
+    grep "^$loop " /proc/mounts | cut -d" " -f2
 }
 
 get_device() {
@@ -779,7 +779,7 @@ my_umount() {
 #                             mount -t ext2    -o rw "$1" "$2" &>/dev/null
 #     return "$?"
 # }
-# 
+#
 # mount_file() {
 #     mount -t reiserfs         -o loop,rw "$1" "$2"  2>/dev/null || \
 #         mount -t ext4         -o loop,rw "$1" "$2"  2>/dev/null || \
@@ -787,26 +787,26 @@ my_umount() {
 #                 mount -t ext2 -o loop,rw "$1" "$2"  2>/dev/null
 #     return "$?"
 # }
-# 
-# 
+#
+#
 # mount_any_if_needed() {
 #     mount_X_if_needed "any" "$@"
 # }
-# 
+#
 # mount_file_if_needed() {
 #     "file" "$@"
 # }
-# 
+#
 # mount_X_if_needed() {
 #     local type="$1"
 #     local dev="$2"
 #     local mp="$3"
-# 
+#
 #     if ! [ -d "$mp" ]; then
 #         vpf "Creating mountpoint directory: %s" "[f]$mp[/i]"
 #         mkdir -p $mp || error_box "$(pfgt_ac "Could not create the %s mountpoint." "[f]$mp[/]")"
 #     fi
-# 
+#
 #     local exist_mp=$(get_mountpoint $dev)
 #     if [ "$exist_mp" ]; then
 #         #  If $dev was already mounted at $mp then there's nothing to do.
@@ -816,14 +816,14 @@ my_umount() {
 #     else
 #         if [ "$type" = "any" ]; then
 #             mount_any $dev $mp || error_box "$(pfgt_ac "Could not mount %s at %s."  "[f]$dev[/]" "[f]$mp[/]")"
-# 
+#
 #         elif [ "$type" = "file" ]; then
 #             mount_file $dev $mp || error_box "$(pfgt_ac "Could not mount file %s at %s."  "[f]$dev[/]" "[f]$mp[/]")"
-# 
+#
 #         else
 #             error_box "$(pfqt "Unknown type: %s sent to %s" "[n]$type[/]" "[f]mount_X_if_needed[/]")"
 #         fi
-# 
+#
 #         vpf "mounted %s at %s." "[f]$dev[/]" "[f]$mp[/]"
 #     fi
 #     # Record for later umounting
@@ -1200,7 +1200,7 @@ select_size() {
             return
             ;;
     esac
-    
+
     for size_str in $options; do
         str=$( echo $size_str | cut -d: -f1  | tr "_"  " ")
         size=$(echo $size_str | cut -d: -f2)
