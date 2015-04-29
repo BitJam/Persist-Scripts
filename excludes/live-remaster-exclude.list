@@ -30,7 +30,7 @@
 /var/lib/sudo/*
 /var/lib/udisks/*
 /var/lib/urandom/*
-/var/log/
+/var/log/*
 /var/mail/*
 /var/spool/mail/*
 /var/tmp/*
