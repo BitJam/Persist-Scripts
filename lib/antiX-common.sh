@@ -1398,9 +1398,26 @@ explore_dir() {
     shift;
 
     if [ "$SET_GUI" ]; then
+        local f filer
+        for f in rox thunar; do
+            which $f &>/dev/null && continue
+            filer=$f
+            break
+        done
+
+        if [ -z "$filer" ]; then
+            warn_box "$TITLE" "" "$(gt "Could not find a filer program for exploring")" ""
+            return
+        fi
+
+        local opts
+        case $filer in
+            rox) opts="--new -d"
+        esac
+
         #bg_info_box -o --undecorated "$TITLE" "" "$@"
         bg_info_box "$TITLE" "" "$@"
-        $GUI_FILER $FILER_OPTS $dir
+        $filer $opts $dir
         kill_bg_info_box
     else
         #markup_text "$@"
