@@ -264,11 +264,7 @@ make_help() {
 
 #===== Timing commands ========================================================
 
-get_time() { cut -d" " -f22 /proc/self/stat ;}
-
-show_time() {
-    msg "$(printf "$green%ss$yellow %s" $(get_seconds) "$*")"
-}
+get_time() { date +%s; }
 
 get_seconds() {
     local dt=${1:-$(get_time)}
@@ -296,12 +292,11 @@ time_cmd() {
     "$@"
     local ret=$?
     sync
-    local t1=$(get_time)
-    local secs=$(get_seconds $((t1 - t0)))
+    local elapsed=$(elapsed t0)
     disown $pid 2>/dev/null
     kill -9 $pid 2>/dev/null
     echo
-    vmsg "$(pf "<< took %s seconds" $secs)"
+    vmsg "<< took $elapsed"
     return $ret
 }
 
@@ -318,19 +313,46 @@ time_cmd_quiet() {
 
     (bogo_meter)&
     local pid=$!
+
     local t0=$(get_time)
     "$@"  1>>$LOG_FILE 2>>$LOG_FILE
-    sync
     local ret=$?
-    local t1=$(get_time)
-    local secs=$(get_seconds $((t1 - t0)))
+    sync
+    local elapsed=$(elapsed t0)
     disown $pid 2>/dev/null
     kill -9 $pid 2>/dev/null
     echo
-    vmsg "$(pf "<< took %s seconds" $secs)"
+    vmsg "<< took $elapsed"
     return $ret
 }
 
+elapsed() {
+    local secs mins hours
+    secs=$((-$1 + $(date +%s)))
+    [ $secs -lt 60 ] && printf "%8d %s\n" $secs $(plural $secs "sec%s") && return
+    mins=$((secs / 60))
+    secs=$((secs - 60 * mins))
+    [ $mins -lt 60 ] && printf "%5d:%02d mm:ss" $mins $secs && return
+    hours=$((mins / 60))
+    mins=$((mins - 60 * hours))
+    printf "%2d:%02d:%02d hh:mm:ss" $hours $mins $secs
+}
+
+#------------------------------------------------------------------------------
+# plural cnt string
+# Do simple substition on <string> to match the <cnt>.  May need more entries
+# but the current set suffices for now.
+#------------------------------------------------------------------------------
+plural() {
+    local n=$1 str=$2
+    case $n in
+        1) local s=  ies=y   are=is   were=was  es=;;
+        *) local s=s ies=ies are=are  were=were es=es;;
+    esac
+    echo "$str" | sed -e "s/%s\>/$s/g" -e "s/%ies\>/$ies/g" \
+        -e "s/%are\>/$are/g" -e "s/%n\>/$n/g" -e "s/%were\>/$were/g" \
+        -e "s/%es\>/$es/g" -e "s/%3d\>/$(printf "%3d" $n)/g"
+}
 
 #------------------------------------------------------------------------------
 # Function: read_conf [-q] [config_file]
