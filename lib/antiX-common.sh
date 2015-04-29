@@ -1425,7 +1425,7 @@ explore_dir() {
         for line in "$@"; do
             prompt="$prompt$(markup_text "$line")$NO_COLOR\n"
         done
-        
+
         prompt="$prompt$RED$ME$GREEN>$NO_COLOR "
         echo "$(pfgt_ac "Use the \"exit\" command to return to %s" "$ME")"
         (
@@ -1440,11 +1440,11 @@ explore_dir() {
 # fix_it_yourself() {
 #     local dir="$1"
 #     shift;
-# 
+#
 #     #noisy_yes_no_box "$@" "" "$(gt_ac "Do you want to try to fix this problem yourself?")" || exit
-# 
+#
 #     if [ "$SET_GUI" ]; then
-# 
+#
 #         $GUI_FILER $FILER_OPTS $dir
 #     else
 #         echo "$(pfgt_ac "Use the \"exit\" command to return to %s" "$ME")"
