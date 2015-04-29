@@ -265,7 +265,7 @@ FROM=$AUFS_MP
 exclude_file=$CONF_DIR/remaster.exclude
 #lifo_string TO_DELETE $exclude_file
 
-remaster_excludes "" $pretend_excludes | sort -u > $exclude_file
+remaster_excludes "" $pretend_excludes ${home_exclude#/} | sort -u > $exclude_file
 
 #--- create the tmp/new squashfs file
 MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $COMP_OPT -wildcards -ef $exclude_file"
