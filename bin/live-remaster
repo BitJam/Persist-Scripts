@@ -14,6 +14,9 @@
 # GETTEXT_KEYWORD="remaster_error"
 # GETTEXT_KEYWORD="error_box_pf"
 
+# GETTEXT_KEYWORD="fmt_size"
+# GETTEXT_KEYWORD="fmt_any"
+
 # Only needed for the location of the protect files
 source /usr/local/lib/antiX/antiX-get-param.sh
 
