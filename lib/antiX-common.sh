@@ -329,13 +329,13 @@ time_cmd_quiet() {
 elapsed() {
     local secs mins hours
     secs=$((-$1 + $(date +%s)))
-    [ $secs -lt 60 ] && printf "%8d %s\n" $secs $(plural $secs "sec%s") && return
+    [ $secs -lt 60 ] && printf "%d %s\n" $secs $(plural $secs "sec%s") && return
     mins=$((secs / 60))
     secs=$((secs - 60 * mins))
-    [ $mins -lt 60 ] && printf "%5d:%02d mm:ss" $mins $secs && return
+    [ $mins -lt 60 ] && printf "%d:%02d mm:ss" $mins $secs && return
     hours=$((mins / 60))
     mins=$((mins - 60 * hours))
-    printf "%2d:%02d:%02d hh:mm:ss" $hours $mins $secs
+    printf "%d:%02d:%02d hh:mm:ss" $hours $mins $secs
 }
 
 #------------------------------------------------------------------------------
