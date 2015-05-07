@@ -383,7 +383,7 @@ make_filefs() {
 
     case $ret in
         0) okay_box "$TITLE" "" "$(pfgt "Success! File %s was created." "[f]$file[/]")" ;;
-    [123]) okay_box "$TITLE" "" "$(pfgt "Success! File %s was created and it's filesystem was fixed." "[f]$file[/]")" ;;
+    [123]) okay_box "$TITLE" "" "$(pfgt "Success! File %s was created and its filesystem was fixed." "[f]$file[/]")" ;;
         *) warn_box "" "$(pfgt "The filesystem on %s is broken and wasn't fixed" "[f]$file[/]")"
            rm -f $full
            return 4
@@ -488,7 +488,7 @@ change_path() {
     choice="$choice!$custom"
 
     combo_box "Path" "$choice" "$TITLE" "" \
-        "$(gt "Please choice an new persistence directory")" "" \
+        "$(gt "Please choose a new persistence directory")" "" \
         "$(pfgt "The current choice is %s" "[f]$P_PATH[/]")" ""
 
     if [ "$UI_RESULT" != "$custom" ]; then
