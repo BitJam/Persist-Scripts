@@ -347,7 +347,8 @@ else
     sync
 fi
 
-vmsg "mksquashfs took $(elapsed $T0)"
+elapsed=$(elapsed $T0)
+vmsg "mksquashfs took $elapsed"
 
 remaster_error() {
     local fmt="$(gettext "$1")" && shift
@@ -363,7 +364,6 @@ remaster_error() {
     || rm -f $tmp_file
     exit 2
 }
-
 
 [ -f $ret_file ] || remaster_error "Remastering Terminated Early"
 
@@ -385,17 +385,41 @@ mv $tmp_file $new_file
 
 clean_up && trap EXIT
 
-info_box -c                                                                                \
-    "$(gt "Created new compressed filesystem file:")"                                      \
-    ""                                                                                     \
-    "[f]$new_file[/]"                                                                      \
-    "$(pfgt "size: %s Meg" "[n]$sq_new_size[/]")"                                          \
-    ""                                                                                     \
+main_text=(
+    "$(fmt_size "linuxfs size"  $sq_new_size)"
+    "$(fmt_any  "elapsed time"  $elapsed)"
+    "$(fmt_any  "processors"    $cpu_ratio)"
+    "$(fmt_any  "compression"   $COMP_TYPE)"
+)
+
+for t in "${main_text[@]}"; do
+    vmsg "$t"
+done
+
+
+info_box -c                                             \
+    "$(gt "Created new compressed filesystem file:")"   \
+    "[f]$new_file[/]"                                   \
+    "[fixed]"                                           \
+    "${main_text[@]}"                                   \
+    "[/]"                                               \
     "$(gt "The new file should be used automatically the next time you boot.")"            \
     ""                                                                                     \
     "$(gt "If there is a problem with the new system:")"                                   \
     "$(pfgt "Use the %s  boot option to return to the current system."  "[b]rollback[/]")" \
-    "" ""                                                                                  \
+    "" ""
+
+#    "[f]$new_file[/]"                                                                      \
+#    "$(pfgt "size: %s Meg" "[n]$sq_new_size[/]")"                                          \
+#    "$(pfgt "elapsed time: %s" "[n]$elapsed[/]")"                                          \
+#    "$(pfgt "processors: %s" "[n]$cpu_ratio[/]")"                                          \
+#    ""                                                                                     \
+#    "$(gt "The new file should be used automatically the next time you boot.")"            \
+#    ""                                                                                     \
+#    "$(gt "If there is a problem with the new system:")"                                   \
+#    "$(pfgt "Use the %s  boot option to return to the current system."  "[b]rollback[/]")" \
+#    "" ""                                                                                  \
+
 
 [ -e /live/config/persist-save.conf \
     -o -e /live/config/persist-root ] || exit 0
