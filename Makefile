@@ -8,7 +8,7 @@ EXCLUDE_DIR   := $(PREFIX)$(TO_DIR)/share/excludes
 EXCLUDE_FILES := $(wildcard excludes/*.list)
 EXCLUDE_ORIG  := $(patsubst excludes/%.list,$(EXCLUDE_DIR)/%.orig,$(EXCLUDE_FILES))
 
-DIRS          := $(EXCLUDE_DIR) $(LIB_DIR) $(BIN_DIR) pot
+DIRS          := $(EXCLUDE_DIR) $(LIB_DIR) $(BIN_DIR) pot-files
 CP            := cp --preserve=mode -P
 BIN_FILES     := $(shell find bin -xtype f -executable)
 RBIN_FILES    := $(shell find bin -type f -executable)
@@ -49,10 +49,10 @@ $(LIB_POT): $(LIB_FILES)
 	$(XGET_TEXT) --output=$@ $<
 	for f in $^; do $(XGET_TEXT) -j --output=$@ $$f; done
 
-$(LIB_POTS): pot/%.pot : lib/%.sh | pot
+$(LIB_POTS): pot/%.pot : lib/%.sh | pot-files
 	$(XGET_TEXT) --output=$@ $<
 
-$(BIN_POTS): pot/%.pot : bin/% | pot
+$(BIN_POTS): pot/%.pot : bin/% | pot-files
 	$(XGET_TEXT) --output=$@ $<
 
 
