@@ -182,11 +182,12 @@ combo_box compression-type "$gzip_option!$xz_option"                         \
         "$(pfgt "%s will result in a smaller file" "[b]xz[/b]")"
 
 #UI_RESULT=xz
-
 case $UI_RESULT in
-    xz*) COMP_OPT="-comp xz"   ;;
-  gzip*) COMP_OPT="-comp gzip" ;;
+    xz*) COMP_TYPE="xz"   ;;
+  gzip*) COMP_TYPE="gzip" ;;
 esac
+
+OTHER_OPTS="$OTHER_OPTS -comp $COMP_TYPE"
 
 _General_="$(gt "General")"
 _Personal_="$(gt "Personal")"
@@ -204,6 +205,19 @@ if [ "$SET_GENERAL" ]; then
     cp $PERSIST_PROTECT_FILE $REMASTER_PROTECT_FILE
 else
     rm -f $REMASTER_PROTECT_FILE
+fi
+
+num_cpu=$(grep -c "^processor\s" /proc/cpuinfo)
+lim_cpu=$((num_cpu / 2))
+cpu_ratio="$lim_cpu/$num_cpu"
+
+if [ $num_cpu -gt 1 ] &&  mksquashfs --help 2>&1 | grep -- -processors; then
+    no_yes_box "" \
+        "$(gt "Do you want to limit the number of CPUs used?")" \
+        "" \
+        "$(gt "This will make the remaster take twice as long.")" \
+        "$(gt "But there is less chance your computer will overheat.")" \
+        && OTHER_OPTS="$OTHER_OPTS -processors $lim_cpu"
 fi
 
 if ! [ "$NO_INFO" ]; then
@@ -271,7 +285,7 @@ exclude_file=$CONF_DIR/remaster.exclude
 remaster_excludes "" $pretend_excludes ${home_exclude#/} | sort -u > $exclude_file
 
 #--- create the tmp/new squashfs file
-MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $COMP_OPT -wildcards -ef $exclude_file"
+MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $OTHER_OPTS -wildcards -ef $exclude_file"
 #MKSQ_OPTS="$FROM $tmp_file"
 MKSQ_COMMAND="/usr/local/bin/run-mksquashfs $ret_file $MKSQ_OPTS"
 
