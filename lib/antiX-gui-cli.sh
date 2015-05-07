@@ -29,6 +29,10 @@ fmt_size() {
     printf "$SIZE_FMT" "$(gettext "$1")" "$2"
 }
 
+fmt_any() {
+    printf "$ANY_FMT"  "$(gettext "$1")" "$2"
+}
+
 start_logging() {
     [ "$SET_NO_LOG" ] && return
     local me=${1:-$(basename $0)}
