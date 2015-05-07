@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# grab last input parameter
+filename="$(eval echo \$$#)"
+
+keywords=$(grep GETTEXT_KEYWORD=  $filename | sed 's/^.*GETTEXT_KEYWORD=\([^ ]\+\).*/\1/')
+keywords=$(echo $keywords | sed "s/[\"\']//g")
+
+opts="-L Shell"
+if [ "$keywords" ]; then
+    echo "Using keyword(s) ($keywords) instead of \"gettext\" in $filename"
+    opts="$opts --keyword"
+    for keyword in $keywords; do
+        opts="$opts --keyword=$keyword"
+    done
+fi
+
+#echo "opts=$opts"
+#exit
+
+xgettext $opts "$@"
+
