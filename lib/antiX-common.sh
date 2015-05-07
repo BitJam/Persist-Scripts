@@ -832,8 +832,9 @@ my_umount() {
 
 
 mount_squashfs() {
-    mount -o loop,ro -t squashfs "$1" "$2"
-    local ret=$?
+    mount -o loop,ro -t squashfs "$1" "$2"  &>/dev/null
+    local ret=0
+    mountpoint "$2" &>/dev/null || ret=1
     [ "$ret" = "0" ] && lifo_string TO_UMOUNT $2
     return $ret
 }
