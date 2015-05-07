@@ -209,15 +209,19 @@ fi
 
 num_cpu=$(grep -c "^processor\s" /proc/cpuinfo)
 lim_cpu=$((num_cpu / 2))
-cpu_ratio="$lim_cpu/$num_cpu"
+cpu_ratio="$num_cpu/$num_cpu"
 
-if [ $num_cpu -gt 1 ] &&  mksquashfs --help 2>&1 | grep -- -processors; then
+if [ $num_cpu -gt 1 ] &&  mksquashfs --help 2>&1 | grep -- -processors && \
     no_yes_box "" \
         "$(gt "Do you want to limit the number of CPUs used?")" \
         "" \
         "$(gt "This will make the remaster take twice as long.")" \
-        "$(gt "But there is less chance your computer will overheat.")" \
-        && OTHER_OPTS="$OTHER_OPTS -processors $lim_cpu"
+        "$(gt "But there is less chance your computer will overheat.")"; then
+
+    OTHER_OPTS="$OTHER_OPTS -processors $lim_cpu"
+    cpu_ratio="$lim_cpu/$num_cpu"
+
+
 fi
 
 if ! [ "$NO_INFO" ]; then
