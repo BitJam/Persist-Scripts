@@ -621,14 +621,17 @@ select_choice_cli() {
         fi
         echo $TBAR
         if [ -z "$input" ]; then
-            pfgt_gui "Your selection was empty.\n"
+            pfgt_gui "Your selection was empty."
+            echo
 
         elif [ "$not_a_number" ]; then
-            pfgt_gui "You must select a number.\n"
+            pfgt_gui "You must select a number."
+            echo
 
         else
             local selection="$NO_COLOR<$PROMPT_COLOR$input$NO_COLOR>"
-            pfgt_gui "Your selection %s was out of range.\n" "$selection"
+            pfgt_gui "Your selection %s was out of range." "$selection"
+            echo
         fi
         echo $TBAR
 

@@ -250,7 +250,7 @@ help_error() {
 }
 
 control_c() {
-    dialog_box_cli "yes_no" "$(pfgt_ac "\nDo you really want to quit from %s?" $ME)" && exit 12
+    dialog_box_cli "yes_no" "$(pfgt_ac "Do you really want to quit from %s?" $ME)" && exit 12
 }
 
 make_help() {
