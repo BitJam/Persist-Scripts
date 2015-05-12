@@ -38,7 +38,7 @@ install: $(EXCLUDE_ORIG) | $(DIRS)
 	$(CP) lib/* $(LIB_DIR)/
 	$(CP) excludes/*.list $(EXCLUDE_DIR)/
 	$(CP) lib/* $(LIB_DIR)/
-	$(CP) locale/* $(LOCALE_DIR)/
+	$(CP) -r locale/* $(LOCALE_DIR)/
 	$(CP) $(BIN_FILES) $(BIN_DIR)/
 
 $(EXCLUDE_ORIG): $(EXCLUDE_DIR)/%.orig : excludes/*.list | $(EXCLUDE_DIR)
