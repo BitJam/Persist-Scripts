@@ -100,18 +100,34 @@ fs_old_size=$(du_size $SQFS_MP)
 fs_new_size=$(du_size $AUFS_MP)
 
 fs_new_size=$(( $fs_new_size - $exclude_size ))
+old_rat100=$((100 * sq_old_size / fs_old_size))
+
+if [ $old_rat100 -gt 60 ]; then
+    old_comp=gzip
+    gz_factor=100
+    xz_factor=83
+else
+    old_comp=xz
+    gz_factor=120
+    xz_factor=100
+fi
 
 sq_new_size_est=$(( $fs_new_size * $sq_old_size / $fs_old_size))
+gz_new_size_est=$((sq_new_size_est * gz_factor / 100))
+xz_new_size_est=$((sq_new_size_est * xz_factor / 100))
 
-safe_estimate=$(($sq_new_size_est + $SAFETY_MARGIN))
+safe_estimate_gz=$(($gz_new_size_est + $SAFETY_MARGIN))
+safe_estimate_xz=$(($xz_new_size_est + $SAFETY_MARGIN))
 
-boot_remain=$(($boot_avail - $sq_new_size_est))
+boot_remain_gz=$(($boot_avail - $gz_new_size_est))
+boot_remain_xz=$(($boot_avail - $xz_new_size_est))
 
 exclude_size_est=$(( $exclude_size * $sq_old_size / $fs_old_size))
 main_text=(
-    "$(fmt_size "current linuxfs size" $sq_old_size)"
+    "$(fmt_size "current linuxfs size" $sq_old_size) ($old_comp)"
     "$(fmt_size "excluded files est."  $exclude_size_est)"
-    "$(fmt_size "estimated new size"   $sq_new_size_est)"
+    "$(fmt_size "estimated new size"   $gz_new_size_est) (gzip)"
+    "$(fmt_size "estimated new size"   $xz_new_size_est) (xz)"
     ""
     "boot device: [f]$BOOT_DEV[/f]"
     " mounted at: [f]$BOOT_MP[/f]"
@@ -119,7 +135,8 @@ main_text=(
     ""
     "$(fmt_size "boot device total" $boot_total)"
     "$(fmt_size "boot device free"  $boot_avail)"
-    "$(fmt_size "est. remaining"    $boot_remain)"
+    "$(fmt_size "est. remaining"    $boot_remain_gz) (gzip)"
+    "$(fmt_size "est. remaining"    $boot_remain_xz) (xz)"
 )
 
 for t in "${main_text[@]}"; do
@@ -135,8 +152,8 @@ done
 
 kill_bg_info_box
 
-[ "$boot_avail" -lt "$safe_estimate" ] && \
-    error_box_pf "Have: %s megs available.  Need: %s." "[n]$boot_avail[/]" "[n]$safe_estimate[/]"
+[ $boot_avail -lt $safe_estimate_xz ] && \
+    error_box_pf "Have: %s megs available.  Need: %s." "[n]$boot_avail[/]" "[n]$safe_estimate_xz[/]"
 
 while [ "$BAD_FILES" ]; do
     yes_no_box                                                        \
@@ -175,20 +192,24 @@ if which alsactl &>/dev/null; then
     alsactl --ignore store
 fi
 
+COMP_TYPE=xz
+
 gzip_option="gzip $(gt "(compresses faster)")"
   xz_option="xz $(gt "(compresses better)")"
 
-combo_box compression-type "$gzip_option!$xz_option"                         \
+if [ $boot_avail -ge $safe_estimate_gz ]; then
+
+    combo_box compression-type "$gzip_option!$xz_option"                     \
         "$TITLE" ""                                                          \
         "$(gt "Please choose the type of compression to use")"               \
         "$(pfgt "%s will take less time" "[b]gzip[/b]")"                     \
         "$(pfgt "%s will result in a smaller file" "[b]xz[/b]")"
 
-#UI_RESULT=xz
-case $UI_RESULT in
-    xz*) COMP_TYPE="xz"   ;;
-  gzip*) COMP_TYPE="gzip" ;;
-esac
+    #UI_RESULT=xz
+    case $UI_RESULT in
+        gzip*) COMP_TYPE="gzip" ;;
+    esac
+fi
 
 OTHER_OPTS="$OTHER_OPTS -comp $COMP_TYPE"
 
