@@ -316,7 +316,7 @@ MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $OTHER_OPTS -wildcards -ef $exclude_file"
 #MKSQ_OPTS="$FROM $tmp_file"
 MKSQ_COMMAND="/usr/local/bin/run-mksquashfs $ret_file $MKSQ_OPTS"
 
-vmsg "mksquashfs options: $MKSQ_OPTS"
+vmsg "mksquashfs $MKSQ_OPTS"
 
 restore_live
 
