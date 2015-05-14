@@ -1,6 +1,9 @@
 
 # GETTEXT_KEYWORD="gt_gp"
 
+LIVE_DIR=/live
+read LIVE_DIR 2>/dev/null < /etc/live/live-dir
+
 LANG_CONFIG_FILE=/etc/live/config/language.conf
 DISABLED_RC_DIR=/etc/live/disabled-rc.d
 
@@ -170,7 +173,7 @@ should_run_shutdown() {
 
 get_linuxrc_param() {
     local name="$1" file="$2"
-    [ "$file" ] || file="/live/config/linuxrc.out"
+    [ "$file" ] || file="$LIVE_DIR/config/linuxrc.out"
     grep "^\s*$name=" $file | sed 's/^[a-zA-Z_]\+="\(.*\)"/\1/';
 }
 
