@@ -219,16 +219,19 @@ _Personal_="$(gt "Personal")"
 if ! [ "$SET_GENERAL" -o "$SET_PERSONAL" ]; then
     combo_box remaster-type "$_General_!$_Personal_" -a                           \
         "$TITLE" ""                                                               \
-        "$(pfgt "%s uses your current language settings."  "[b]$_Personal_[/]")"  \
+        "$(pfgt "%s uses your personal settings."  "[b]$_Personal_[/]")"          \
         "$(pfgt "%s does not." "[b]$_General_[/]")"
 
     [ "$UI_RESULT" = "$_General_" ] && SET_GENERAL=true
 fi
 
+# FIXME?? The old code seemed backwards.
 if [ "$SET_GENERAL" ]; then
-    cp $PERSIST_PROTECT_FILE $REMASTER_PROTECT_FILE
+    #cp $PERSIST_PROTECT_FILE $REMASTER_PROTECT_FILE
+    general_excludes=$(_excludes general-remaster-exclude.list)
 else
-    rm -f $REMASTER_PROTECT_FILE
+    #rm -f $REMASTER_PROTECT_FILE
+    general_excludes=
 fi
 
 num_cpu=$(grep -c "^processor\s" /proc/cpuinfo)
@@ -309,7 +312,7 @@ FROM=$AUFS_MP
 exclude_file=$CONF_DIR/remaster.exclude
 #lifo_string TO_DELETE $exclude_file
 
-remaster_excludes "" $pretend_excludes ${home_exclude#/} | sort -u > $exclude_file
+remaster_excludes "" $pretend_excludes ${home_exclude#/} $general_excludes | sort -u > $exclude_file
 
 #--- create the tmp/new squashfs file
 MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $OTHER_OPTS -wildcards -ef $exclude_file"
