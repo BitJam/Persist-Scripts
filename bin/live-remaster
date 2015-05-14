@@ -273,10 +273,7 @@ machine: $(uname -m)
 Version_Info_End
 
     av_file=$AUFS_MP/etc/antix-version
-    if [ -r "$av_file" ]; then
-        antiX_version="$(cat $av_file)"
-        echo "inxi version: $antiX_version" >> $AUFS_VID_FILE
-    fi
+    [ -r "$av_file" ] && echo "inxi version: $(cat $av_file)" >> $AUFS_VID_FILE
 
 fi
 
