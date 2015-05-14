@@ -108,7 +108,7 @@ if [ $old_rat100 -gt 60 ]; then
     xz_factor=83
 else
     old_comp=xz
-    gz_factor=120
+    gz_factor=121
     xz_factor=100
 fi
 
