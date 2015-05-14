@@ -519,7 +519,9 @@ restore_live() {
 _excludes() {
     local file list_file=$1 dir=$2
     [ -n "${list_file##/*}" ] && list_file=$EXCLUDES_DIR/$list_file
-    shift 2
+    local n=2
+    [ $# -lt $n ] && n=$#
+    shift $n
 
     # append trailing slash to non-empty $dir
     [ -n "${dir%%*/}" ] && dir="$dir/"
