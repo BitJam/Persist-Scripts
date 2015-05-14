@@ -17,8 +17,8 @@ _Semi_Automatic_="$(gt "Semi-Automatic")"
         _Manual_="$(gt "Manual")"
           _Quit_="$(gt "Quit")"
 
-[ -e /live/config/persist-save.conf \
-    -o -e /live/config/save-persist ]  && SHOULD_RUN=true
+[ -e $LIVE_DIR/config/persist-save.conf \
+    -o -e $LIVE_DIR/config/save-persist ]  && SHOULD_RUN=true
 
 BLURB="
     $(gt "Configure root persistence saves to run either:")
@@ -141,7 +141,7 @@ elif [ "$SET_SHUT_DOWN" ]; then
         edit_config
     fi
 
-    local last_save_file=/live/config/last-auto-save
+    local last_save_file=$LIVE_DIR/config/last-auto-save
     if test -r $last_save_file; then
         local prev=$(cat $last_save_file)
         local now=$(date +%s)
@@ -151,7 +151,7 @@ elif [ "$SET_SHUT_DOWN" ]; then
             echo_live "Won't autosave again"
 
             # Should we rest this or not??
-            date +%s > /live/config/last-auto-save
+            date +%s > $LIVE_DIR/config/last-auto-save
 
             exit_command
         fi
@@ -177,7 +177,7 @@ elif [ "$SET_SHUT_DOWN" ]; then
     vmsg "running perist-save($persist_opts )"
     #sudo persist-save $persist_opts 2>&1  && exit_command
     if persist-save $persist_opts 2>&1; then
-        date +%s > /live/config/last-auto-save
+        date +%s > $LIVE_DIR/config/last-auto-save
         exit_command
     fi
 

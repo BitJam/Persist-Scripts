@@ -421,8 +421,8 @@ Version_Info_End
     #    "$(pfgt "Use the %s  boot option to return to the current system."  "[b]rollback[/]")" \
     #    "" ""                                                                                  \
 
-    [ -e /live/config/persist-save.conf \
-        -o -e /live/config/persist-root ] || exit 0
+    [ -e $LIVE_DIR/config/persist-save.conf \
+        -o -e $LIVE_DIR/config/persist-root ] || exit 0
     which persist-makefs &>/dev/null      || exit 0
 
     opts=

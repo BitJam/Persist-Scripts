@@ -25,7 +25,8 @@ OLDEN_FILES="rootfs.tmp rootfs.bak homefs.old rootfs.old linuxfs.old"
 # Files we will only delete after e2fsck fails
 LIVE_FILES="rootfs homefs homefs.new"
 
-CONF_FILE=/live/config/linuxrc.out
+CONF_FILE=$LIVE_DIR/config/initrd.out
+[ -r $CONF_FILE ] || CONF_FILE=$LIVE_DIR/config/linuxrc.out
 
 TITLE="$(gt "antiX Create or Resize Persistence")"
 BLURB="$(gt "Create or resize the files need for root and/or home persistence.")"
@@ -87,8 +88,7 @@ prep_main() {
     read_options "$@"
 
     SYS_TYPE="LiveCD/USB/HD"
-    conf_file=$CONF_DIR/linuxrc.out
-    read_conf $conf_file || read_conf_error rootfs $conf_file
+    read_conf $CONF_FILE || read_conf_error rootfs $CONF_FILE
 
     show_cli_title
     need_root

@@ -196,7 +196,7 @@ main() {
 get_vid() { [ -r "$1" ] && grep ^=== $1 | tail -n 1   ;}
 
 check_vid() {
-    local rootfs_mp=$1 linuxfs_mp=${2:-/live/linux}
+    local rootfs_mp=$1 linuxfs_mp=${2:-$LIVE_DIR/linux}
     local linuxfs_vf=$linuxfs_mp/etc/live/version/linuxfs.ver
     test -e $linuxfs_vf || return 0
     local linuxfs_vid=$(get_vid $linuxfs_vf)
