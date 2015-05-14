@@ -3,6 +3,8 @@
 #
 # The files listed here will be deleted at shutdown on live systems
 # when static root persistence is enabled.
+#
+# The original list is available in static-root-delete.orig.
 #--------------------------------------------------------------------
 
 /etc/udev/rules.d/*-persistent-net.rules

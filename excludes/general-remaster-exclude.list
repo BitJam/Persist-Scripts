@@ -1,0 +1,16 @@
+#--------------------------------------------------------------------
+# general-remaster-exclude.list
+#
+# Additional files to be excluded when a general-purpose remaster
+# is created.
+#
+# The original list is available in general-remaster-exclude.orig.
+#--------------------------------------------------------------------
+
+etc/live/protect
+etc/wicd/dhclient.conf.template
+etc/wicd/manager-settings.conf
+etc/wicd/wired-settings.conf
+etc/wicd/wireless-settings.conf
+etc/X11/xorg.conf
+var/lib/wicd/configurations/*

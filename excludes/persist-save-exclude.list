@@ -2,6 +2,7 @@
 # persist-save-exclude.list
 #
 # Files in this list will be excluded when a persist-save is done.
+# The original list is available in persist-save-exclude.orig.
 #--------------------------------------------------------------------
 
 /etc/live/version/linuxfs.ver
