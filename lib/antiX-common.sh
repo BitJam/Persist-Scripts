@@ -6,9 +6,12 @@ VDATE="Thu Dec 13 12:02:05 MDT 2012"
 # GETTEXT_KEYWORD="pfgt_ac"
 # GETTEXT_KEYWORD="help_error"
 
+LIVE_DIR=/live
+read LIVE_DIR 2>/dev/null < /etc/live/live-dir
+
 RESTORE_LIVE_DIRS="usr/share/antiX-install"
 EXCLUDES_DIR=/usr/local/share/excludes
-INITRD_CONF=/live/config/initrd.out
+INITRD_CONF=$LIVE_DIR/config/initrd.out
 antiX_lib=/usr/local/lib/antiX
 
 [ "$Static_antiX_libs" ] || source $antiX_lib/antiX-gui-cli.sh
@@ -75,9 +78,9 @@ UMOUNT="my_umount"
 # Get the name of the program without the path
 [ "$ME" ] || ME="$(basename $0)"
 
-TEMP_DIR="/live/tmp/$ME"
+TEMP_DIR="$LIVE_DIR/tmp/$ME"
 
-CONF_DIR=/live/config
+CONF_DIR=$LIVE_DIR/config
 
 
 DU_CMD="du --apparent-size"
@@ -357,9 +360,9 @@ plural() {
 #------------------------------------------------------------------------------
 # Function: read_conf [-q] [config_file]
 #
-# Merely sources the config_file.  will use /live/config/$ME.conf if the file
-# is not specified.  Normally we give an error if the directory holding the
-# the config_file is not found.  If it is found but the file does not exist
+# Merely sources the config_file.  will use $LIVE_DIR/config/$ME.conf if the
+# file is not specified.  Normally we give an error if the directory holding
+# the the config_file is not found.  If it is found but the file does not exist
 # then we return FALSE.
 #
 # If the -q option is given or $SET_QUIET is true then we exit silently on error.
