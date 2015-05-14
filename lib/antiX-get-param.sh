@@ -173,7 +173,7 @@ should_run_shutdown() {
 
 get_linuxrc_param() {
     local name="$1" file="$2"
-    [ "$file" ] || file="$LIVE_DIR/config/linuxrc.out"
+    [ "$file" ] || file="$LIVE_DIR/config/initrd.out"
     grep "^\s*$name=" $file | sed 's/^[a-zA-Z_]\+="\(.*\)"/\1/';
 }
 
