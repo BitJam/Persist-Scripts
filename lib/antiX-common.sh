@@ -913,12 +913,8 @@ delete_files_rf() {
     done
 }
 
-local_clean_up() { :; }
-
 clean_up() {
     vmsg "$(echo "[w]Cleaning up ...[/]")"
-
-    local_clean_up
 
     restore_umount
     restore_readonly
