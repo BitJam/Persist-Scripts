@@ -140,6 +140,21 @@ okay_box() {
     _dialog_box "okay" "$@" || confirm_quit
 }
 
+timeout_box() {
+    local timeout=$1
+    shift
+    if [ "$SET_GUI" ]; then
+        local first=$1
+        shift
+        _dialog_box "okay" -o --timeout=$timeout "$first" "" "$@"
+    else
+        local line
+        for line; do
+            echo "$CYAN$line$NO_COLOR"
+        done
+    fi
+}
+
 warn_box() {
     _dialog_box "okay" "$(ctitle "[e]Warning[/]")" "$@" || confirm_quit
 }
