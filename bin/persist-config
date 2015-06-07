@@ -147,21 +147,17 @@ elif [ "$SET_SHUT_DOWN" ]; then
         edit_config
     fi
 
-    # last_save_file=$LIVE_DIR/config/last-auto-save
-    # if test -r $last_save_file; then
-    #     prev=$(cat $last_save_file)
-    #     now=$(date +%s)
-    #     diff=$(( new - prev))
-    #     if [ $diff -le $LOCKOUT_TIME ]; then
-    #         echo_live "Already autosaved less then %s seconds ago" $LOCKOUT_TIME
-    #         echo_live "Won't autosave again"
+    if test -r $last_as_file; then
+        prev=$(cat $last_as_file)
+        diff=$(($(date +%s) - $prev))
+        if [ $diff -le $LOCKOUT_TIME ]; then
+            timeout_box 2 \
+                "$(pfgt "Already autosaved less then %s seconds ago" $diff)" \
+                "Won't autosave again"
 
-    #         # Should we rest this or not??
-    #         date +%s > $LIVE_DIR/config/last-auto-save
-
-    #         exit_command
-    #     fi
-    # fi
+            exit_command
+        fi
+    fi
 
     source $CONF_FILE
 
