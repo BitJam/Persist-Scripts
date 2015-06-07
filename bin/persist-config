@@ -6,6 +6,9 @@
 antiX_lib=/usr/local/lib/antiX
 source $antiX_lib/antiX-common.sh     "$@"
 
+last_ps_file=$LIVE_DIR/config/last-persist-save
+last_as_file=$LIVE_DIR/config/last-auto-save
+
 TITLE="$(gt "antiX Root Persistence Auto-Save Configuration")"
 
 LOCKOUT_TIME=15
@@ -141,21 +144,21 @@ elif [ "$SET_SHUT_DOWN" ]; then
         edit_config
     fi
 
-    local last_save_file=$LIVE_DIR/config/last-auto-save
-    if test -r $last_save_file; then
-        local prev=$(cat $last_save_file)
-        local now=$(date +%s)
-        local diff=$(( new - prev))
-        if [ $diff -le $LOCKOUT_TIME ]; then
-            echo_live "Already autosaved less then %s seconds ago" $LOCKOUT_TIME
-            echo_live "Won't autosave again"
+    # last_save_file=$LIVE_DIR/config/last-auto-save
+    # if test -r $last_save_file; then
+    #     prev=$(cat $last_save_file)
+    #     now=$(date +%s)
+    #     diff=$(( new - prev))
+    #     if [ $diff -le $LOCKOUT_TIME ]; then
+    #         echo_live "Already autosaved less then %s seconds ago" $LOCKOUT_TIME
+    #         echo_live "Won't autosave again"
 
-            # Should we rest this or not??
-            date +%s > $LIVE_DIR/config/last-auto-save
+    #         # Should we rest this or not??
+    #         date +%s > $LIVE_DIR/config/last-auto-save
 
-            exit_command
-        fi
-    fi
+    #         exit_command
+    #     fi
+    # fi
 
     source $CONF_FILE
 
@@ -174,13 +177,16 @@ elif [ "$SET_SHUT_DOWN" ]; then
     [ "$SET_VERBOSE" ] && persist_opts="$persist_opts --verbose"
     [ "$SET_GUI" ]     || persist_opts="$persist_opts --cli"
 
-    vmsg "running perist-save($persist_opts )"
-    #sudo persist-save $persist_opts 2>&1  && exit_command
-    if persist-save $persist_opts 2>&1; then
-        date +%s > $LIVE_DIR/config/last-auto-save
-        exit_command
-    fi
+    rm -f $last_ps_file
 
+    # ALWAYS say we did an autosave even if it failed or was aborted
+    date +%s > $last_as_file
+
+    vmsg "running perist-save $persist_opts"
+
+    persist-save $persist_opts 2>&1 && exit_command
+
+    # Only get here if persist-save exited abnormally
     [ "$OPT_COMMAND" ] || exit 0
 
     yes_no_box "$(gt "CONFIRM") $OPT_COMMAND" ""                    \
