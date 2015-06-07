@@ -6,10 +6,11 @@
 #--------------------------------------------------------------------
 
 /etc/live/version/linuxfs.ver
-/etc/udev/rules.d/*-persistent-cd.rules
-/etc/udev/rules.d/*-persistent-net.rules
+# /etc/udev/rules.d/*-persistent-net.rules
+/live
 /lost+found
-/tmp
+/tmp/*
+/tmp/.[^.]*
 /var/cache/apt/*.bin
 /var/cache/apt/archives/*.deb
 /var/cache/debconf/*-old
