@@ -73,8 +73,11 @@ start_logging
 
 exit_command() {
     [ "$OPT_COMMAND" ]  || exit 0
+
     # chvt so we see shutdown messages on tty1
-    chvt 1 2>/dev/null
+    case $OPT_COMMAND in
+        reboot|poweroff) chvt 1 2>/dev/null ;;
+    esac
     exec $OPT_COMMAND
 }
 
