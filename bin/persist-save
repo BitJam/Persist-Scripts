@@ -146,7 +146,7 @@ main() {
     restore_live
 
     if [ "$AUFS_MP" ] && which auplink &>/dev/null; then
-        time_cmd_quiet auplink flush $AUFS_MP
+        time_cmd_quiet auplink $AUFS_MP flush
     fi
     #--- now do the rsync
     time_cmd_quiet rsync -a $rsync_opts
