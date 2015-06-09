@@ -132,7 +132,7 @@ main() {
     fs_new_size=$(( $fs_new_size - $exclude_size ))
     old_rat1000=$((1000 * sq_old_size / fs_old_size))
 
-    if [ $old_rat100 -gt 345 ]; then
+    if [ $old_rat1000 -gt 345 ]; then
         old_comp=gzip
         gz_factor=100
         xz_factor=82
