@@ -20,8 +20,6 @@
 # Note: 262144 = 0x40000
 OTHER_OPTS="-b 262144"
 
-BIND_FILES="/etc/passwd /etc/shadow /etc/gshadow /etc/group /etc/slim.conf"
-
 # Only needed for the location of the protect files
 source /usr/local/lib/antiX/antiX-get-param.sh
 
@@ -29,7 +27,6 @@ source /usr/local/lib/antiX/antiX-common.sh  "$@"
 
 TITLE="antiX Live Remaster"
 BLURB="$(gt "Create a new compressed file system saving all of the changes you have made to the system.")"
-BLURB="$BLURB  $(gt "Optionally save changes in your home directory.")"
 BLURB="\n$(echo "$BLURB" | fold -s -w 74 | sed 's/^/    /')"
 
 SAFETY_MARGIN=20
@@ -38,21 +35,15 @@ EXTRA_USAGE="
 \n[b]$(gt "Extra options for"):[/] [p]$ME[/]
     -p|--pretend        $(gt "Make a smaller linuxfs.new.  NOT deleted when done.")
     -t|--title=<[p]title[/]>  $(pfgt "Use %s instead of prompting user for title." "<[p]title[/]>")
-    -n|--no-info        $(pfgt "Do not alter the %s file." "[f]/etc/live/version/linuxfs.ver[/]")
     --general           $(gt "Make a general-purpose remaster.")
     --personal          $(gt "Make a personalized remaster.")
-    --home              $(pfgt "Save files under the %s directory." "[f]/home[/]")
-    --no-home           $(pfgt "Don't save files under the %s directory." "[f]/home[/]")\n
 "
 
 OPTIONS="
     p,pretend||PRETEND
-    n,no-info||NO_INFO
     t,title|o|TITLE
     general||GENERAL
     personal||PERSONAL
-    home||HOME
-    no-home||NO_HOME
 "
 
 prep_main() {
@@ -63,7 +54,7 @@ prep_main() {
     SYS_TYPE="LiveUSB/HD"
     read_conf || read_conf_error "linuxfs"
 
-    RO_ROOT="$LIVE_DIR/ro-root"
+    BIND_ROOT="$LIVE_DIR/bind-root"
 
     show_cli_title
 
@@ -79,12 +70,29 @@ main() {
     mount_if_needed $BOOT_DEV $BOOT_MP
     make_readwrite $BOOT_MP
 
-    # Need to ask this early so we get the exclude size right
-    if ! [ "$SET_HOME" -o "$SET_NO_HOME" ]; then
-        no_yes_box "" \
+    _General_="$(gt "General")"
+    _Personal_="$(gt "Personal")"
+
+    if [ "$SET_PERSONAL" ]; then
+        SET_GENERAL=
+    elif [ -z "$SET_GENERAL" ]; then
+        combo_box remaster-type "$_General_!$_Personal_" -a                           \
+            "$TITLE" ""                                                               \
+            "$(pfgt "%s uses your personal settings."  "[b]$_Personal_[/]")"          \
+            "$(pfgt "%s does not." "[b]$_General_[/]")"
+
+        [ "$UI_RESULT" = "$_General_" ] && SET_GENERAL=true
+    fi
+
+    local general_excludes no_home="--empty=/home"
+    if [ "$SET_GENERAL" ]; then
+        general_excludes=$(_excludes general-remaster-exclude.list)
+
+    else
+        yes_no_box "" \
             "$(pfgt "Do you want to save files under %s in the new remaster?" "[f]/home[/]")" \
-            ""                                                           \
-            && SET_HOME=true
+            "" \
+                && no_home=
     fi
 
     bg_info_box -o "$PULSATE"                           \
@@ -93,18 +101,33 @@ main() {
         "$(gt "Checking if there is enough room ...")"  \
         ""
 
-    [ "$SET_HOME" ]    || home_exclude="/home/*"
-    [ "$SET_PRETEND" ] && pretend_excludes="boot bin lib media usr"
-    excludes="$(remaster_excludes $AUFS_MP $pretend_excludes $home_exclude)"
+    local i2L_opts="--bind-root=$BIND_ROOT --from=/ $no_home start"
+    [ "$SET_GENERAL" ] && i2L_opts="$i2L_opts general"
 
+    FORCE_CLEAN=--Force
+    trap local_clean_up EXIT
+    vmsg "installed-to-live $i2L_opts"
+    installed-to-live $i2L_opts
+    FORCE_CLEAN=
+
+    if [ -z "$no_home" ] && mountpoint -q /home; then 
+           mount --bind /home $BIND_ROOT/home
+    fi
+
+    [ "$SET_PRETEND" ] && pretend_excludes="boot bin lib media usr"
+
+    # Allow extended globs in the exclude specifications
+    shopt -s extglob
+    excludes="$(remaster_excludes $BIND_ROOT $pretend_excludes $home_exclude $general_excludes)"
     exclude_size="$(du_size $excludes)"
+    shopt -u extglob
 
     boot_total=$(all_space  $BOOT_MP)
     boot_avail=$(free_space $BOOT_MP)
 
     sq_old_size=$(du_size $(readlink -f $SQFILE_FULL))
     fs_old_size=$(du_size $SQFS_MP)
-    fs_new_size=$(du_size $AUFS_MP)
+    fs_new_size=$(du_size $BIND_ROOT)
 
     fs_new_size=$(( $fs_new_size - $exclude_size ))
     old_rat100=$((100 * sq_old_size / fs_old_size))
@@ -220,27 +243,6 @@ main() {
 
     OTHER_OPTS="$OTHER_OPTS -comp $COMP_TYPE"
 
-    _General_="$(gt "General")"
-    _Personal_="$(gt "Personal")"
-
-    if ! [ "$SET_GENERAL" -o "$SET_PERSONAL" ]; then
-        combo_box remaster-type "$_General_!$_Personal_" -a                           \
-            "$TITLE" ""                                                               \
-            "$(pfgt "%s uses your personal settings."  "[b]$_Personal_[/]")"          \
-            "$(pfgt "%s does not." "[b]$_General_[/]")"
-
-        [ "$UI_RESULT" = "$_General_" ] && SET_GENERAL=true
-    fi
-
-    # FIXME?? The old code seemed backwards.
-    if [ "$SET_GENERAL" ]; then
-        #cp $PERSIST_PROTECT_FILE $REMASTER_PROTECT_FILE
-        general_excludes=$(_excludes general-remaster-exclude.list)
-    else
-        #rm -f $REMASTER_PROTECT_FILE
-        general_excludes=
-    fi
-
     num_cpu=$(grep -c "^processor\s" /proc/cpuinfo)
     lim_cpu=$((num_cpu / 2))
     cpu_ratio="$num_cpu/$num_cpu"
@@ -257,19 +259,20 @@ main() {
         cpu_ratio="$lim_cpu/$num_cpu"
     fi
 
-    if ! [ "$NO_INFO" ]; then
-        if ! [ "$SET_TITLE" ]; then
-            get_text title ""                                                \
-                "$(gt "Remaster Version Identification")"                    \
-                ""                                                           \
-                "$(gt "Please enter an (optional) title for this remaster")" \
-                ""
+    if [ -z "$SET_TITLE" ]; then
+        get_text title ""                                                \
+            "$(gt "Remaster Version Identification")"                    \
+            ""                                                           \
+            "$(gt "Please enter an (optional) title for this remaster")" \
+            ""
 
-            OPT_TITLE="$UI_RESULT"
-        fi
-        # Make a new version id for the new squashfs to be created
-        mkdir -p $(dirname $AUFS_VID_FILE)
-        cat >> $AUFS_VID_FILE << Version_Info_End
+        OPT_TITLE="$UI_RESULT"
+    fi
+    # Make a new version id for the new squashfs to be created
+    local vid_file=${AUFS_VID_FILE#$AUFS_MP}
+    local full_vid_file=$TEMP_DIR/template/$vid_file
+    mkdir -p $(dirname $full_vid_file)
+    cat >> $full_vid_file << Version_Info_End
 $(version_id)
 
 title: $OPT_TITLE
@@ -278,9 +281,10 @@ kernel: $(uname -sr)
 machine: $(uname -m)
 Version_Info_End
 
-        av_file=$AUFS_MP/etc/antix-version
-        [ -r "$av_file" ] && echo "inxi version: $(cat $av_file)" >> $AUFS_VID_FILE
-    fi
+    av_file=$AUFS_MP/etc/antix-version
+    [ -r "$av_file" ] && echo "inxi version: $(cat $av_file)" >> $full_vid_file
+
+    installed-to-live add=$TEMP_DIR/template
 
     # we create tmp_file and only move it to new_file if everything checks
     new_file=$SQFILE_FULL.new
@@ -290,16 +294,14 @@ Version_Info_End
     ret_file=$SQFILE_DIR/mksquashfs.ret
     rm -f $ret_file
 
-    mount_if_needed --bind $AUFS_MP $RO_ROOT
-    mount -o remount,ro,bind $RO_ROOT || error_box_pf "Could not remount %s" $RO_ROOT
-    #[ "$SET_GENERAL" ] && make_general $RO_ROOT
+    mount -o remount,ro,bind $BIND_ROOT || error_box_pf "Could not remount %s read-only" $BIND_ROOT
 
-    FROM=$RO_ROOT
+    FROM=$BIND_ROOT
 
     exclude_file=$CONF_DIR/remaster.exclude
     #lifo_string TO_DELETE $exclude_file
 
-    remaster_excludes "" $pretend_excludes ${home_exclude#/} $general_excludes | sort -u > $exclude_file
+    remaster_excludes "" $pretend_excludes $general_excludes | sort -u > $exclude_file
 
     #--- create the tmp/new squashfs file
     MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $OTHER_OPTS -wildcards -ef $exclude_file"
@@ -372,7 +374,7 @@ Version_Info_End
     ret_value=$(cat $ret_file)
     rm -f $ret_file
 
-    [ "$ret_value" = "0" ] || remaster_error "Remastering Failed" "(with an exit code of %s)" "[n]$ref_val[/]"
+    [ "$ret_value" = "0" ] || remaster_error "Remastering Failed" "(with an exit code of %s)" "[n]$ret_val[/]"
 
     [ -f "$tmp_file" ] || error_box_pf "New linuxfs file was not created!"
 
@@ -382,10 +384,7 @@ Version_Info_End
 
     mv $tmp_file $new_file
 
-    #[ "$SET_TEST" ] && rm -r $FROM/lib/etc
-    #[ "$SET_TEST" ] && rm $new_file
-
-    clean_up && trap EXIT
+    local_clean_up && trap EXIT
 
     main_text=(
         "$(fmt_size "linuxfs size"  $sq_new_size)"
@@ -423,7 +422,7 @@ Version_Info_End
 
     [ -e $LIVE_DIR/config/persist-save.conf \
         -o -e $LIVE_DIR/config/persist-root ] || exit 0
-    which persist-makefs &>/dev/null      || exit 0
+    which persist-makefs &>/dev/null          || exit 0
 
     opts=
     [ "$SET_QUIET"  ] && opts=--quit
@@ -437,30 +436,6 @@ Version_Info_End
             "" "" \
             && persist-makefs --rootfs $opts
     exit 0
-}
-
-make_general() {
-    local file root=$1
-    local bind_dir=$TEMP_DIR/bind
-
-    # Copy in files to the bind_dir
-    for file in $BIND_FILES; do
-        test -e $root$file || continue
-        dir=$(dirname $file)
-        bdir=$bind_dir$dir
-        mkdir -p $bdir
-        cp -a $root$file $bdir
-    done
-
-    # Modify files
-    local user1000=$(cut -d: -f1,3 /etc/passwd | grep :1000$ | cut -d: -f1)
-    local other_users=$(cut /etc/passwd -d: -f1,6 | grep :/home/ | cut -d: -f1 | grep -v ^$user1000$)
-
-
-    # Bind mount files
-    for file in $BIND_FILES; do
-        mount --bind $bind_dir$file $root$file
-    done
 }
 
 gui_wait() {
@@ -495,6 +470,14 @@ remaster_error() {
     "([f]$SQFILE_NAME.tmp[/])"                          \
     || rm -f $tmp_file
     exit 2
+}
+
+local_clean_up() {
+    # FIXME?
+    echo "local clean up"
+    installed-to-live $FORCE_CLEAN cleanup
+    clean_up
+    return 0
 }
 
 prep_main "$@"
