@@ -130,15 +130,15 @@ main() {
     fs_new_size=$(du_size $BIND_ROOT)
 
     fs_new_size=$(( $fs_new_size - $exclude_size ))
-    old_rat100=$((100 * sq_old_size / fs_old_size))
+    old_rat1000=$((1000 * sq_old_size / fs_old_size))
 
-    if [ $old_rat100 -gt 60 ]; then
+    if [ $old_rat100 -gt 345 ]; then
         old_comp=gzip
         gz_factor=100
-        xz_factor=83
+        xz_factor=82
     else
         old_comp=xz
-        gz_factor=121
+        gz_factor=122
         xz_factor=100
     fi
 
