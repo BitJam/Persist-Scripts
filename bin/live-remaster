@@ -85,15 +85,16 @@ main() {
     fi
 
     local general_excludes no_home="--empty=/home"
+
     if [ "$SET_GENERAL" ]; then
         general_excludes=$(_excludes general-remaster-exclude.list)
 
-    else
-        yes_no_box "" \
-            "$(pfgt "Do you want to save files under %s in the new remaster?" "[f]/home[/]")" \
-            "" \
-                && no_home=
     fi
+
+    yes_no_box "" \
+        "$(pfgt "Do you want to save files under %s in the new remaster?" "[f]/home[/]")" \
+        "" \
+            && no_home=
 
     bg_info_box -o "$PULSATE"                           \
         ""                                              \
