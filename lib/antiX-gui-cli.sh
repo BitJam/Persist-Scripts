@@ -529,6 +529,7 @@ get_text_cli() {
 get_text_cli_check() {
     local input="$1"
     pfgt_gui "you entered: %s" "$WHITE$input$NO_COLOR"
+    echo
     yes_no_box "$(gt_gui "Is this correct?")"
     return $?
 }
