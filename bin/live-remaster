@@ -117,9 +117,10 @@ main() {
 
     [ "$SET_PRETEND" ] && pretend_excludes="boot bin lib media usr"
 
+    # Expicitly add $(basename $BIND_ROOT) so users don't have to see it
     # Allow extended globs in the exclude specifications
     shopt -s extglob
-    excludes="$(remaster_excludes $BIND_ROOT $pretend_excludes $home_exclude $general_excludes)"
+    excludes="$(remaster_excludes $BIND_ROOT $(basename $BIND_ROOT) $pretend_excludes $home_exclude $general_excludes)"
     exclude_size="$(du_size $excludes)"
     shopt -u extglob
 
