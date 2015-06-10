@@ -7,10 +7,15 @@
 # The original list is available in general-remaster-exclude.orig.
 #--------------------------------------------------------------------
 
-etc/live/protect
+etc/NetworkManager/system-connections/*
+etc/X11/xorg.conf
+etc/live
+etc/network/interfaces
+etc/network/interfaces.d/*
+/etc/udev/*-persistent-net.rules
+etc/wicd/*.conf
 etc/wicd/dhclient.conf.template
 etc/wicd/manager-settings.conf
 etc/wicd/wired-settings.conf
 etc/wicd/wireless-settings.conf
-etc/X11/xorg.conf
 var/lib/wicd/configurations/*
