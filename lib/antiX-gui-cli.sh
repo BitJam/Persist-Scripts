@@ -62,6 +62,12 @@ vmsg() {
     echo -e "$text" >> $LOG_FILE
 }
 
+qmsg() {
+    local text="$(markup_text "$@")"
+    echo -e "$text"
+    echo -e "$text" >> $LOG_FILE
+}
+
 # Verbose exit, explaining why we are leaving.
 vexit() {
     local fmt="$(gettext "$1")" && shift
