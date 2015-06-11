@@ -105,13 +105,15 @@ main() {
     local i2L_opts="--bind-root=$BIND_ROOT --from=/ $no_home start"
     [ "$SET_GENERAL" ] && i2L_opts="$i2L_opts general"
 
+    installed-to-live status >> $LOG_FILE
+
     FORCE_CLEAN=--Force
     trap local_clean_up EXIT
     vmsg "installed-to-live $i2L_opts"
     installed-to-live $i2L_opts
     FORCE_CLEAN=
 
-    if [ -z "$no_home" ] && mountpoint -q /home; then 
+    if [ -z "$no_home" ] && mountpoint -q /home; then
            mount --bind /home $BIND_ROOT/home
     fi
 
@@ -287,6 +289,8 @@ Version_Info_End
     [ -r "$av_file" ] && echo "inxi version: $(cat $av_file)" >> $full_vid_file
 
     installed-to-live add=$TEMP_DIR/template
+
+    installed-to-live --verbose status >> $LOG_FILE
 
     # we create tmp_file and only move it to new_file if everything checks
     new_file=$SQFILE_FULL.new
