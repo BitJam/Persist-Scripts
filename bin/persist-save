@@ -145,9 +145,14 @@ main() {
 
     restore_live
 
-    if [ "$AUFS_MP" ] && which auplink &>/dev/null; then
-        time_cmd_quiet auplink $AUFS_MP flush
-    fi
+    #-jbb if [ "$AUFS_MP" ] && which auplink &>/dev/null; then
+    #-jbb     local t0=$(get_time)
+    #-jbb     qmsg ">> aplink $AUFS_MP flush"
+    #-jbb     auplink $AUFS_MP flush
+    #-jbb     local elapsed=$(elapsed $t0)
+    #-jbb     qmsg "<< took $elapsed"
+    #-jbb fi
+
     #--- now do the rsync
     time_cmd_quiet rsync -a $rsync_opts
     rsync_ret=$?
