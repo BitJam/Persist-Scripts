@@ -76,7 +76,7 @@ exit_command() {
 
     # chvt so we see shutdown messages on tty1
     case $OPT_COMMAND in
-        reboot|poweroff) chvt 1 2>/dev/null ;;
+        reboot|poweroff) sync; chvt 1 2>/dev/null ;;
     esac
     exec $OPT_COMMAND
 }
