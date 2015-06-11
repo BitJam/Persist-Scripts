@@ -305,14 +305,11 @@ time_cmd() {
 
 time_cmd_quiet() {
 
-    if [ ! "$SET_VERBOSE" ]; then
-        if [ "$SET_QUIET" ]; then
-            echo ">> $1 ..."
-        else
-            echo ">>$*"
-        fi
+    if [ "$SET_VERBOSE" ]; then
+        qmsg ">> $*"
+    else
+        qmsg ">> $1"
     fi
-    vmsg ">> $*"
 
     (bogo_meter)&
     local pid=$!
@@ -325,7 +322,7 @@ time_cmd_quiet() {
     disown $pid 2>/dev/null
     kill -9 $pid 2>/dev/null
     echo
-    vmsg "<< took $elapsed"
+    qmsg "<< took $elapsed"
     return $ret
 }
 
