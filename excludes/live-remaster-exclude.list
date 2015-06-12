@@ -32,6 +32,9 @@ run/.[^.]*
 tmp/*
 tmp/.[^.]*
 swapfile
+# usr/lib/python*/*.pyo
+# usr/lib/python*/*/*.pyo
+# usr/lib/python*/*/*/*.pyo
 var/cache/apt-show-versions/*
 var/cache/apt/*.bin
 var/cache/apt/archives/*.deb
