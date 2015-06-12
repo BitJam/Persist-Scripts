@@ -308,7 +308,7 @@ Version_Info_End
     exclude_file=$CONF_DIR/remaster.exclude
     #lifo_string TO_DELETE $exclude_file
 
-    remaster_excludes "" $BIND_ROOT $(basename $BIND_ROOT) $pretend_excludes $general_excludes | sort -u > $exclude_file
+    remaster_excludes "" $(basename $BIND_ROOT) $pretend_excludes $general_excludes | sort -u > $exclude_file
 
     #--- create the tmp/new squashfs file
     MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $OTHER_OPTS -wildcards -ef $exclude_file"
