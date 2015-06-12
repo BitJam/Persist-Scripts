@@ -358,6 +358,7 @@ Version_Info_End
 
                 if [ -d "/proc/$mksq_pid" ]; then
                     remaster_done="true"
+                    GUI_PID=
                     finish_remaster
                     break
                 fi
@@ -473,6 +474,8 @@ finish_remaster() {
 remaster_error() {
     local fmt="$(gettext "$1")" && shift
     local msg="$(printf "$fmt" "$@")"
+
+    [ "$GUI_PID" ] && kill -9 $GUI_PID &> /dev/null
     no_yes_box -c                                       \
         "[e]$(gt "Error")[/]"                           \
     ""                                                  \
