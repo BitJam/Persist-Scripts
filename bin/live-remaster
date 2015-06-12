@@ -340,9 +340,9 @@ Version_Info_End
         while true; do
 
             if ! [ -d "/proc/$mksq_pid" ]; then
-                sync
-                kill -9 $GUI_PID &> /dev/null
                 remaster_done="true"
+                finish_remaster
+                kill -9 $GUI_PID &> /dev/null
                 break
             fi
 
@@ -357,8 +357,8 @@ Version_Info_End
                 fi
 
                 if [ -d "/proc/$mksq_pid" ]; then
-                    sync
                     remaster_done="true"
+                    finish_remaster
                     break
                 fi
 
@@ -370,39 +370,8 @@ Version_Info_End
 
     else
         $MKSQ_COMMAND
-        sync
+        finish_remaster
     fi
-
-    elapsed=$(elapsed $T0)
-    vmsg "mksquashfs took $elapsed"
-
-    [ -f $ret_file ] || remaster_error "Remastering Terminated Early"
-
-    ret_value=$(cat $ret_file)
-    rm -f $ret_file
-
-    [ "$ret_value" = "0" ] || remaster_error "Remastering Failed" "(with an exit code of %s)" "[n]$ret_val[/]"
-
-    [ -f "$tmp_file" ] || error_box_pf "New linuxfs file was not created!"
-
-    sq_new_size=$(du_size $tmp_file)
-
-    mount_squashfs_temp $tmp_file || remaster_error "Could not mount new file as %s!" "("squashfs")"
-
-    mv $tmp_file $new_file
-
-    local_clean_up && trap EXIT
-
-    main_text=(
-        "$(fmt_size "linuxfs size"  $sq_new_size)"
-        "$(fmt_any  "elapsed time"  "$elapsed")"
-        "$(fmt_any  "processors"    $cpu_ratio)"
-        "$(fmt_any  "compression"   $COMP_TYPE)"
-    )
-
-    for t in "${main_text[@]}"; do
-        vmsg "$t"
-    done
 
     info_box -c                                             \
         "$(gt "Created new compressed filesystem file:")"   \
@@ -463,6 +432,43 @@ gui_wait() {
     GUI_PID=$!
     disown $GUI_PID
 }
+
+# Rely on local variables propogating (lazy)
+# This routine should prevent the 3-second dead time before last screen in gui mode
+finish_remaster() {
+    sync
+    elapsed=$(elapsed $T0)
+    vmsg "mksquashfs took $elapsed"
+
+    [ -f $ret_file ] || remaster_error "Remastering Terminated Early"
+
+    ret_value=$(cat $ret_file)
+    rm -f $ret_file
+
+    [ "$ret_value" = "0" ] || remaster_error "Remastering Failed" "(with an exit code of %s)" "[n]$ret_val[/]"
+
+    [ -f "$tmp_file" ] || error_box_pf "New linuxfs file was not created!"
+
+    sq_new_size=$(du_size $tmp_file)
+
+    mount_squashfs_temp $tmp_file || remaster_error "Could not mount new file as %s!" "("squashfs")"
+
+    mv $tmp_file $new_file
+
+    local_clean_up && trap EXIT
+
+    main_text=(
+        "$(fmt_size "linuxfs size"  $sq_new_size)"
+        "$(fmt_any  "elapsed time"  "$elapsed")"
+        "$(fmt_any  "processors"    $cpu_ratio)"
+        "$(fmt_any  "compression"   $COMP_TYPE)"
+    )
+
+    for t in "${main_text[@]}"; do
+        vmsg "$t"
+    done
+}
+
 
 remaster_error() {
     local fmt="$(gettext "$1")" && shift
