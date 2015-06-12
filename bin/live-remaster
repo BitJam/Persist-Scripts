@@ -395,7 +395,7 @@ Version_Info_End
 
     main_text=(
         "$(fmt_size "linuxfs size"  $sq_new_size)"
-        "$(fmt_any  "elapsed time"  $elapsed)"
+        "$(fmt_any  "elapsed time"  "$elapsed")"
         "$(fmt_any  "processors"    $cpu_ratio)"
         "$(fmt_any  "compression"   $COMP_TYPE)"
     )
