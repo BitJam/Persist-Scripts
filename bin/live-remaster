@@ -300,14 +300,15 @@ Version_Info_End
     ret_file=$SQFILE_DIR/mksquashfs.ret
     rm -f $ret_file
 
-    mount -o remount,ro,bind $BIND_ROOT || error_box_pf "Could not remount %s read-only" $BIND_ROOT
+    # FIXME: is this needed?
+    #mount -o remount,ro,bind $BIND_ROOT || error_box_pf "Could not remount %s read-only" $BIND_ROOT
 
     FROM=$BIND_ROOT
 
     exclude_file=$CONF_DIR/remaster.exclude
     #lifo_string TO_DELETE $exclude_file
 
-    remaster_excludes "" $pretend_excludes $general_excludes | sort -u > $exclude_file
+    remaster_excludes "" $BIND_ROOT $(basename $BIND_ROOT) $pretend_excludes $general_excludes | sort -u > $exclude_file
 
     #--- create the tmp/new squashfs file
     MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $OTHER_OPTS -wildcards -ef $exclude_file"
