@@ -9,7 +9,6 @@
 
 etc/NetworkManager/system-connections/*
 etc/X11/xorg.conf
-etc/live
 etc/network/interfaces
 etc/network/interfaces.d/*
 /etc/udev/*-persistent-net.rules
