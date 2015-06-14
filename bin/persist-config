@@ -181,7 +181,7 @@ elif [ "$SET_SHUT_DOWN" ]; then
     vmsg "running perist-save $persist_opts"
 
     persist-save $persist_opts 2>&1
-    local ret=$?
+    ret=$?
 
     # ALWAYS say we did an autosave even if it failed or was aborted
     # Do it *after* running persist-save in case it takes time
