@@ -17,8 +17,7 @@ etc/mtab
 etc/udev/*-persistent-net.rules
 home/*/.Xauthority
 home/lost+found
-live/*
-live/.[^.]*
+live
 lost+found
 media/*
 media/.[^.]*
