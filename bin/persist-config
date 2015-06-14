@@ -178,12 +178,16 @@ elif [ "$SET_SHUT_DOWN" ]; then
 
     rm -f $last_ps_file
 
-    # ALWAYS say we did an autosave even if it failed or was aborted
-    date +%s > $last_as_file
-
     vmsg "running perist-save $persist_opts"
 
-    persist-save $persist_opts 2>&1 && exit_command
+    persist-save $persist_opts 2>&1
+    local ret=$?
+
+    # ALWAYS say we did an autosave even if it failed or was aborted
+    # Do it *after* running persist-save in case it takes time
+    date +%s > $last_as_file
+
+    [ $ret -eq 0 ] && exit_command
 
     # Only get here if persist-save exited abnormally
     [ "$OPT_COMMAND" ] || exit 0
