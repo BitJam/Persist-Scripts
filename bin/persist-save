@@ -39,6 +39,10 @@ main() {
     need_root
     start_logging
 
+    noisy_yes_no_box                              \
+        "$(gt "Shall we begin?")"                 \
+        || vexit "Stopping at user's request"
+
     trap clean_up EXIT
     create_lock
 
