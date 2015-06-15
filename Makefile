@@ -50,7 +50,7 @@ $(DIRS):
 
 pots: $(POT_FILES)
 
-$(LIB_POT): $(LIB_FILES)
+$(LIB_POT): $(LIB_FILES) | pot-files
 	$(XGET_TEXT) --output=$@ $<
 	for f in $^; do $(XGET_TEXT) -j --output=$@ $$f; done
 
@@ -63,6 +63,14 @@ push-tx: $(LIB_POT) $(BIN_POTS)
 	tx push -r antix-development.persist-config -s
 	tx push -r antix-development.persist-makefs -s
 	tx push -r antix-development.persist-save -s
+
+pull-tx: | pot-files
+	tx pull -r antix-development.antix-bash-libs -s
+	tx pull -r antix-development.live-remaster -s
+	tx pull -r antix-development.persist-config -s
+	tx pull -r antix-development.persist-makefs -s
+	tx pull -r antix-development.persist-save -s
+
 
 RESOURCES: $(POT_FILES)
 	: > $@
