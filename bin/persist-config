@@ -152,7 +152,7 @@ elif [ "$SET_SHUT_DOWN" ]; then
         diff=$(($(date +%s) - $prev))
         if [ $diff -le $LOCKOUT_TIME ]; then
             timeout_box 2 \
-                "$(pfgt "Already autosaved less then %s seconds ago" $diff)" \
+                "$(pfgt "Already autosaved less than %s seconds ago" $diff)" \
                 "Won't autosave again"
 
             exit_command
