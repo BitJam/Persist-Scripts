@@ -228,7 +228,7 @@ main() {
 
     COMP_TYPE=xz
 
-    gzip_option="gzip $(gt "(compresses faster)")"
+    gzip_option="gzip $(gt "(compresses faster, boots faster)")"
       xz_option="xz $(gt "(compresses better)")"
 
     if [ $boot_avail -ge $safe_estimate_gz ]; then
