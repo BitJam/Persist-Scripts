@@ -259,16 +259,16 @@ main() {
     lim_cpu=$((num_cpu / 2))
     cpu_ratio="$num_cpu/$num_cpu"
 
-    if [ $num_cpu -gt 1 ] && mksquashfs --help 2>&1 | grep -q -- -processors && \
-        yes_no_box "" \
+    if [ $num_cpu -gt 1 ] && mksquashfs --help 2>&1 | grep -q -- -processors; then
+        if ! yes_no_box "" \
             "$(gt "Do you want remaster to use all of the CPUs?")" \
             "" \
             "$(gt "This will make the remaster process run as fast as possile.")" \
             "$(gt "But there is more of a chance your computer will overheat.")"; then
-        :
-    else
-        OTHER_OPTS="$OTHER_OPTS -processors $lim_cpu"
-        cpu_ratio="$lim_cpu/$num_cpu"
+
+            OTHER_OPTS="$OTHER_OPTS -processors $lim_cpu"
+            cpu_ratio="$lim_cpu/$num_cpu"
+        fi
     fi
 
     if [ -z "$SET_TITLE" ]; then
