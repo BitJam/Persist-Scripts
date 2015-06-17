@@ -126,25 +126,33 @@ main() {
     exclude_size="$(du_size $excludes)"
     shopt -u extglob
 
-    boot_total=$(all_space  $BOOT_MP)
-    boot_avail=$(free_space $BOOT_MP)
+    local boot_total=$(all_space  $BOOT_MP)
+    local boot_avail=$(free_space $BOOT_MP)
 
-    sq_old_size=$(du_size $(readlink -f $SQFILE_FULL))
-    fs_old_size=$(du_size $SQFS_MP)
-    fs_new_size=$(du_size $BIND_ROOT)
+    local sq_old_size=$(du_size $(readlink -f $SQFILE_FULL))
+    local fs_old_size=$(du_size $SQFS_MP)
+    local fs_new_size=$(du_size $BIND_ROOT)
 
-    fs_new_size=$(( $fs_new_size - $exclude_size ))
-    old_rat1000=$((1000 * sq_old_size / fs_old_size))
+    local fs_new_size=$(( $fs_new_size - $exclude_size ))
+    local old_rat1000=$((1000 * sq_old_size / fs_old_size))
 
-    if [ $old_rat1000 -gt 345 ]; then
-        old_comp=gzip
-        gz_factor=100
-        xz_factor=82
-    else
+    if is_xz_squashfs $(readlink -f $SQFILE_FULL); then
         old_comp=xz
         gz_factor=122
         xz_factor=100
-    fi
+        if [ $old_rat1000 -gt 345 ]; then
+            qmsg 'Strange, we detected xz compression but the ratio was $old_rat1000/1000 > .345'
+        fi
+   else
+        old_comp=gzip
+        gz_factor=100
+        xz_factor=82
+
+        if [ $old_rat1000 -lt 345 ]; then
+            qmsg 'Strange, we detected gzip compression but the ratio was $old_rat1000/1000 < .345'
+        fi
+
+   fi
 
     sq_new_size_est=$(( $fs_new_size * $sq_old_size / $fs_old_size))
     gz_new_size_est=$((sq_new_size_est * gz_factor / 100))
@@ -494,6 +502,12 @@ local_clean_up() {
     installed-to-live $FORCE_CLEAN cleanup
     clean_up
     return 0
+}
+
+is_xz_squashfs() {
+    local file=$1
+    dd if="$file" bs=1 count=200 2>/dev/null | strings | grep -q 7zXZ
+    return $?
 }
 
 prep_main "$@"
