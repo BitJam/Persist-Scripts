@@ -48,7 +48,7 @@ main() {
     create_lock
 
     if [ "$PERSIST_UUID" ]; then
-        uuid_dev=$(blkid -U "$PERSIST_UUID")
+        uuid_dev=$(blkid -U "$PERSIST_UUID" -c /dev/null)
         [ -z "$uuid_dev" ] &&  error_box \
         "$(pfgt "The persistence device with UUID %s was not found" "[n]$PERSIST_UUID[/]")" \
         "$(pfgt "Please plug in the persistence device and try again")"
