@@ -147,17 +147,19 @@ elif [ "$SET_SHUT_DOWN" ]; then
         edit_config
     fi
 
-    if test -r $last_as_file; then
-        prev=$(cat $last_as_file)
-        diff=$(($(date +%s) - $prev))
+    now=$(date +%s)
+    for file in $last_as_file $last_ps_file; do
+        test -r $file || continue
+        read prev 2>/dev/null < $file
+        diff=$(( $now - $prev))
         if [ $diff -le $LOCKOUT_TIME ]; then
             timeout_box 2 \
-                "$(pfgt "Already autosaved less than %s seconds ago" $diff)" \
-                "Won't autosave again"
+                "$(pfgt "Already saved less than %s seconds ago" $diff)" \
+                "$(pfgt "Won't autosave within %s seconds of a previous save" $LOCKOUT_TIME)"
 
             exit_command
         fi
-    fi
+    done
 
     source $CONF_FILE
 
