@@ -447,7 +447,7 @@ gui_wait() {
 finish_remaster() {
     sync
     elapsed=$(elapsed $T0)
-    vmsg "mksquashfs took $elapsed"
+    qmsg "mksquashfs took $elapsed"
 
     [ -f $ret_file ] || remaster_error "Remastering Terminated Early"
 
@@ -465,6 +465,10 @@ finish_remaster() {
     mv $tmp_file $new_file
 
     local_clean_up && trap EXIT
+
+    qmsg 'Making md5 sum ...'
+
+    cat $new_file | md5sum > $SQFILE_FULL.md5.new
 
     main_text=(
         "$(fmt_size "linuxfs size"  $sq_new_size)"
