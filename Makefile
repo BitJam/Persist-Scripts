@@ -63,6 +63,8 @@ push-tx: $(LIB_POT) $(BIN_POTS)
 	tx push -r antix-development.persist-config -s
 	tx push -r antix-development.persist-makefs -s
 	tx push -r antix-development.persist-save -s
+	tx push -r antix-development.alsa-set-default-card -s
+	tx push -r antix-development.toram-eject -s
 
 pull-tx: | pot-files
 	tx pull -r antix-development.antix-bash-libs -s
@@ -70,6 +72,8 @@ pull-tx: | pot-files
 	tx pull -r antix-development.persist-config -s
 	tx pull -r antix-development.persist-makefs -s
 	tx pull -r antix-development.persist-save -s
+	tx pull -r antix-development.alsa-set-default-card -s
+	tx pull -r antix-development.toram-eject -s
 
 
 RESOURCES: $(POT_FILES)
