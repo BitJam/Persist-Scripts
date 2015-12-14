@@ -14,7 +14,7 @@ etc/live/live-dir
 etc/live/protect/remaster
 etc/live/version/rootfs.ver
 etc/mtab
-etc/udev/*-persistent-net.rules
+etc/udev/rules.d/*-persistent-net.rules
 home/*/.Xauthority
 home/lost+found
 live
