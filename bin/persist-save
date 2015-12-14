@@ -68,8 +68,7 @@ main() {
     mount_if_needed -o loop $PERSIST_FILE $ROOTFS_MP
     make_readwrite $ROOTFS_MP
 
-    check_vid $ROOTFS_MP \
-        || error_box_pf "Version id inside of %s file does not match" "[n]rootfs[/]"
+    check_vid $ROOTFS_MP || vexit "On VID error"
 
     # Check for available space. If ok continue else stop.
     #FIXME: should offer to make a new rootfs if we don't have enough room.
@@ -203,25 +202,23 @@ main() {
 get_vid() { [ -r "$1" ] && grep ^=== $1 | tail -n 1   ;}
 
 check_vid() {
-    local rootfs_mp=$1 linuxfs_mp=${2:-$LIVE_DIR/linux}
+    local base=$1 linuxfs_mp=${2:-$LIVE_DIR/linux}
+    test -d $base/upper && base=$base/upper
     local linuxfs_vf=$linuxfs_mp/etc/live/version/linuxfs.ver
     test -e $linuxfs_vf || return 0
     local linuxfs_vid=$(get_vid $linuxfs_vf)
     [ "$linuxfs_vid" ] || return 0
-    local rootfs_vf=$rootfs_mp/etc/live/version/rootfs.ver
-    if [ -z "$rootfs_vf" ]; then
-        vmsg "Missing version file in rootfs file system"
-        return 1
-    fi
+
+    local rvf=/etc/live/version/rootfs.ver
+    local rootfs_vf=$base$rvf
+    [ -z "$rootfs_vf" ] && error_box_pf "Missing rootfs version file %s" "[n]$rvf[/]"
+
     local rootfs_vid=$(get_vid $rootfs_vf)
-    if [ -z "$rootfs_vid" ]; then
-        vmsg "Missing version ID in rootfs file system"
-        return 1
-    fi
-    if [ "$rootfs_vid" != "$linuxfs_vid" ]; then
-        vmsg "Version ID mismatch in rootfs file system"
-        return 1
-    fi
+    [ -z "$rootfs_vid" ] && error_box_pf "Missing version ID in rootfs file system"
+
+    [ "$rootfs_vid" != "$linuxfs_vid" ] \
+        && error_box_pf "Version id inside of %s file does not match" "[n]rootfs[/]"
+
     return 0
 }
 
