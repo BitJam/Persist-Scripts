@@ -1314,6 +1314,7 @@ select_device() {
                 --column="$mount_lab"                   \
                 --column="$size_lab"                    \
                 --column="$free_lab"                    \
+                2>/dev/null                             \
             )
 
             [ "$result" ] || confirm_quit
