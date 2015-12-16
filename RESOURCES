@@ -1,5 +1,7 @@
 antix-bash-libs
 persist-save
+toram-eject
 persist-config
 persist-makefs
 live-remaster
+alsa-set-default-card
