@@ -84,7 +84,7 @@ main() {
         [ "$UI_RESULT" = "$_General_" ] && SET_GENERAL=true
     fi
 
-    local general_excludes no_home="--empty=/home"
+    local general_excludes home_opt="--empty=/home"
 
     if [ "$SET_GENERAL" ]; then
         general_excludes=$(_excludes general-remaster-exclude.list)
@@ -94,7 +94,7 @@ main() {
     yes_no_box "" \
         "$(pfgt "Do you want to save files under %s in the new remaster?" "[f]/home[/]")" \
         "" \
-            && no_home=
+            && home_opt=bind=/home
 
     bg_info_box -o "$PULSATE"                           \
         ""                                              \
@@ -102,7 +102,7 @@ main() {
         "$(gt "Checking if there is enough room ...")"  \
         ""
 
-    local i2L_opts="--bind-root=$BIND_ROOT --from=/ $no_home start"
+    local i2L_opts="--bind-root=$BIND_ROOT --from=/ $home_opt start"
     [ "$SET_GENERAL" ] && i2L_opts="$i2L_opts general"
 
     installed-to-live status >> $LOG_FILE
@@ -112,10 +112,6 @@ main() {
     vmsg "installed-to-live $i2L_opts"
     installed-to-live $i2L_opts
     FORCE_CLEAN=
-
-    if [ -z "$no_home" ] && mountpoint -q /home; then
-           mount --bind /home $BIND_ROOT/home
-    fi
 
     [ "$SET_PRETEND" ] && pretend_excludes="boot bin lib media usr"
 
@@ -296,7 +292,7 @@ Version_Info_End
     av_file=$AUFS_MP/etc/antix-version
     [ -r "$av_file" ] && echo "inxi version: $(cat $av_file)" >> $full_vid_file
 
-    installed-to-live add=$TEMP_DIR/template
+    installed-to-live add=$TEMP_DIR/template read-only
 
     installed-to-live --verbose status >> $LOG_FILE
 
