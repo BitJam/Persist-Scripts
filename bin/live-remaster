@@ -54,7 +54,7 @@ prep_main() {
     SYS_TYPE="LiveUSB/HD"
     read_conf || read_conf_error "linuxfs"
 
-    BIND_ROOT="$LIVE_DIR/bind-root"
+    BIND_ROOT="$LIVE_DIR/.bind-root"
 
     show_cli_title
 
