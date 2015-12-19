@@ -84,7 +84,7 @@ main() {
         [ "$UI_RESULT" = "$_General_" ] && SET_GENERAL=true
     fi
 
-    local general_excludes home_opt="--empty=/home"
+    local general_excludes home_opt="empty=/home"
 
     if [ "$SET_GENERAL" ]; then
         general_excludes=$(_excludes general-remaster-exclude.list)
@@ -102,7 +102,7 @@ main() {
         "$(gt "Checking if there is enough room ...")"  \
         ""
 
-    local i2L_opts="--bind-root=$BIND_ROOT --from=/ $home_opt start"
+    local i2L_opts="--bind-root=$BIND_ROOT --from=/ start $home_opt"
     [ "$SET_GENERAL" ] && i2L_opts="$i2L_opts general"
 
     installed-to-live status >> $LOG_FILE
@@ -110,7 +110,7 @@ main() {
     FORCE_CLEAN=--Force
     trap local_clean_up EXIT
     vmsg "installed-to-live $i2L_opts"
-    installed-to-live $i2L_opts
+    installed-to-live $i2L_opts || error_box_pf "The %s program was unable to start" installed-to-live
     FORCE_CLEAN=
 
     [ "$SET_PRETEND" ] && pretend_excludes="boot bin lib media usr"
@@ -292,7 +292,7 @@ Version_Info_End
     av_file=$AUFS_MP/etc/antix-version
     [ -r "$av_file" ] && echo "inxi version: $(cat $av_file)" >> $full_vid_file
 
-    installed-to-live add=$TEMP_DIR/template read-only
+    installed-to-live add=$TEMP_DIR/template read-only || error_box_pf "The %s program failed to work" installed-to-live
 
     installed-to-live --verbose status >> $LOG_FILE
 
@@ -303,9 +303,6 @@ Version_Info_End
     # The return code from mksquashfs is stored in ret_file by run-mksquashfs
     ret_file=$SQFILE_DIR/mksquashfs.ret
     rm -f $ret_file
-
-    # FIXME: is this needed?
-    #mount -o remount,ro,bind $BIND_ROOT || error_box_pf "Could not remount %s read-only" $BIND_ROOT
 
     FROM=$BIND_ROOT
 
@@ -477,7 +474,6 @@ finish_remaster() {
         vmsg "$t"
     done
 }
-
 
 remaster_error() {
     local fmt="$(gettext "$1")" && shift
