@@ -430,7 +430,7 @@ gui_wait() {
          --width="300"                                \
          --text="$(center_strings "${text[@]}")"      \
         --progress --pulsate                          \
-        --button="gtk-cancel:1") &
+        --button="gtk-cancel:1" 2>/dev/null) &
     GUI_PID=$!
     disown $GUI_PID
 }
