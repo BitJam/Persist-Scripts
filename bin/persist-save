@@ -40,6 +40,8 @@ main() {
     need_root
     start_logging
 
+    grep -q "^PERSISTENCE=.*dynamic" /live/config/initrd.out || error_box_pf "%s was not enabled.  Cannot %s" "Dynamic root persistence" "${0##*/}"
+
     noisy_yes_no_box                              \
         "$(gt "Shall we begin?")"                 \
         || vexit "Stopping at user's request"
