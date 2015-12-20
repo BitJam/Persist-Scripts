@@ -227,7 +227,7 @@ main() {
 
     if which alsactl &>/dev/null; then
         vpf "Storing volume settings"
-        alsactl HOME=/root --ignore store
+        HOME=/root alsactl --ignore store
     fi
 
     COMP_TYPE=xz
