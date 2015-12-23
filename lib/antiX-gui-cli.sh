@@ -16,7 +16,8 @@ pfgt_gui() {
 
 BG_INFO_SLEEP=1
 
-YAD=$(which yad 2>/dev/null)
+YAD=/usr/bin/yad
+test -e $YAD || YAD=
 
 #tty >> $HOME/tty.out
 

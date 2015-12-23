@@ -425,7 +425,7 @@ gui_wait() {
     "" )
 
     # Must call yad directly to get correct PID
-    (yad $YAD_STD_OPTS                                \
+    (/usr/bin/yad $YAD_STD_OPTS                       \
         --title="$(gt "antiX Remaster in Progress")"  \
          --width="300"                                \
          --text="$(center_strings "${text[@]}")"      \
