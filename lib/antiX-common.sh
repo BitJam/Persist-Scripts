@@ -727,9 +727,9 @@ mount_if_needed() {
     # set $mp to last param and $dev to next-to-last param.  This way we can
     # mimic the order of params to the normal mount command.
     local mp idx dev
-    mp="$(eval echo \$$#)"
-    idx=$(( $# - 1))
-    dev="$(eval echo \$$idx)"
+    eval mp=\$$#
+    idx=$(($# - 1))
+    eval dev=\$$idx
 
     if ! [ -e "$dev" ]; then
         mount_error "$(pfgt "%s is not a device or a file" "[f]$dev[/]")"
