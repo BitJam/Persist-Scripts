@@ -641,7 +641,7 @@ free_space() {
 get_mountpoint() {
     local dev="$1"
     #vmsg "get_mountpoint($dev)"
-    local mp=$(grep "^$dev " /proc/mounts | cut -d" " -f2)
+    local mp=$(grep "^$dev " /proc/mounts | head -n1 | cut -d" " -f2)
     #vmsg "get_mountpoint: mp=$mp"
     if [ "$mp" ]; then
         echo $mp
