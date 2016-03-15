@@ -1,8 +1,4 @@
 #!/bin/bash
 
-LIVE_DIR=/live
-read LIVE_DIR 2>/dev/null < /etc/live/live-dir
-
-[ -e $LIVE_DIR/config/persist-save.conf -o \
-    -e $LIVE_DIR/config/persist-root ] || exit
+[ -e /etc/live/config/persist-root -o -e /live/config/persist-root ] || exit
 echo "Persist Root Enabled"
