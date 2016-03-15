@@ -704,6 +704,7 @@ mk_filefs_info() {
 
     local do_umount
     local mp=$(get_mountpoint $full)
+    # printf "file: %-12s full: %-20s mp: %s\n" "$file" "$full" "$mp"
     if ! [ "$mp" ]; then
         mp=$(make_temp_dir $file)
         if ! mount -o loop,ro $full $mp &>/dev/null; then
@@ -783,6 +784,7 @@ gather_file_info() {
 
     FILE_TEXT=("[fixed]")
 
+    # echo "FULL_PATH: $FULL_PATH"
     for file in $ACTIVE_FILES; do
         mk_filefs_info $file $FULL_PATH/$file
         push_array FILE_TEXT "${INFO_HASH[$file]}"
