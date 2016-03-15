@@ -746,7 +746,7 @@ mount_if_needed() {
 
     #  If $dev was already mounted at $mp then there's nothing to do.
     grep -q "^$dev $mp " /proc/mounts && return
-    echo grep -q "^$dev $mp " /proc/mounts
+    # echo grep -q "^$dev $mp " /proc/mounts
 
     local exist_mp=$(get_mountpoint $dev)
     if [ "$exist_mp" ]; then
