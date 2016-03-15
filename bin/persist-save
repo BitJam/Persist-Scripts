@@ -61,7 +61,8 @@ main() {
 
     if which alsactl &>/dev/null; then
         vpf "Storing volume settings"
-        HOME=/root alsactl  --ignore store
+        # *** sigh ***
+        HOME=/root alsactl  --ignore store 2>/dev/null
     fi
 
     mount_if_needed $PERSIST_DEV $PERSIST_MP
