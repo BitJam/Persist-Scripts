@@ -120,7 +120,7 @@ main() {
     done
 
     # If there is no persist device then use the boot device
-    [ -z "$DEV" -a -n "$BOOT_UUID" ] && ${DEV:=$(blkid -U $BOOT_UUID)}
+    [ -n "$BOOT_UUID" ] && : ${DEV:=$(blkid -U $BOOT_UUID)}
 
     if ! [ -b "$DEV" ]; then
         okay_box  "$TITLE" "" \
