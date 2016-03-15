@@ -13,7 +13,9 @@ TITLE="$(gt "antiX Root Persistence Auto-Save Configuration")"
 
 LOCKOUT_TIME=15
 
-CONF_FILE=/etc/live/config/persist-config.conf
+# Moved this to /etc/live because /etc/live/config is now bind mounted
+# from /live/config.
+CONF_FILE=/etc/live/persist-config.conf
 
      _Automatic_="$(gt "Automatic")"
 _Semi_Automatic_="$(gt "Semi-Automatic")"
