@@ -7,7 +7,7 @@ VDATE="Fri Jan 29 10:57:55 MST 2016"
 # GETTEXT_KEYWORD="help_error"
 
 LIVE_DIR=/live
-test -d /etc/live/config && LIVE_DIR=/etc/live
+test -e /etc/live/config/initrd.out && LIVE_DIR=/etc/live
 
 RESTORE_LIVE_DIRS="usr/share/antiX-install"
 EXCLUDES_DIR=/usr/local/share/excludes
