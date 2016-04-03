@@ -974,7 +974,7 @@ save_or_delete() {
     local full dir="$1" file="$2"
     full="$dir/$file"
     if ! [ -e "$full" ]; then
-        warn "$(pfgt_ac "Strange.  File %s does not exit." "[f]$full[/]")"
+        warn "$(pfgt_ac "Strange.  File %s does not exist." "[f]$full[/]")"
         return 0
     fi
 
