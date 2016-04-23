@@ -71,7 +71,7 @@ main() {
     mount_if_needed -o loop $PERSIST_FILE $ROOTFS_MP
     make_readwrite $ROOTFS_MP
 
-    check_vid $ROOTFS_MP || vexit "On VID error"
+    check_vid "$ROOTFS_MP" "$SQFS_MP" || vexit "On VID error"
 
     # Check for available space. If ok continue else stop.
     #FIXME: should offer to make a new rootfs if we don't have enough room.
@@ -205,7 +205,7 @@ main() {
 get_vid() { [ -r "$1" ] && grep ^=== $1 | tail -n 1   ;}
 
 check_vid() {
-    local base=$1 linuxfs_mp=${2:-$LIVE_DIR/linux}
+    local base=$1 linuxfs_mp=$2
     test -d $base/upper && base=$base/upper
     local linuxfs_vf=$linuxfs_mp/etc/live/version/linuxfs.ver
     test -e $linuxfs_vf || return 0
