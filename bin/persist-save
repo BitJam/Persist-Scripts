@@ -15,7 +15,7 @@ TITLE="$(gt "antiX Save Persistent Root")"
 
 BLURB="$(pf "\n    %s\n    %s\n"                                                                  \
     "`pfgt "Manually save filesystem changes in %s file for persistent root." "[f]rootfs[/]"`"    \
-    "`pfgt "You%s MUST%s run a program like this to save your filesystem changes." "[b]" "[/]"`")"
+    "`pfgt "You MUST run a program like this to save your filesystem changes." "[b]" "[/]"`")"
 
 SAFETY_MARGIN=2
 
