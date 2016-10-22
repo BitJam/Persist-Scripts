@@ -32,6 +32,8 @@ help:
 	@echo "make help       show this help"
 	@echo "make install    install scripts and libs"
 	@echo "make pots       make .pot files for scripts and libs"
+	@echo "make push-tx    Send pot files to Transifex site"
+	@echo "make pull-tx    Get po files from Transifex site"
 	@echo $(BIN_FILES)
 
 install: $(EXCLUDE_ORIG) | $(DIRS)
