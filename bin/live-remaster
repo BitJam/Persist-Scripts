@@ -68,7 +68,7 @@ prep_main() {
 main() {
     #--- Mount device holding linuxfs if needed
     mount_if_needed $BOOT_DEV $BOOT_MP
-    make_readwrite $BOOT_MP 2 || error_box_pf "The live device is read-only.  Cannot remaster."
+    make_readwrite $BOOT_MP 2 || error_box_pf "The live file system is read-only.  Cannot remaster."
 
     _General_="$(gt "General")"
     _Personal_="$(gt "Personal")"
