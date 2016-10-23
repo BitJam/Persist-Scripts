@@ -83,5 +83,5 @@ RESOURCES: $(POT_FILES)
 	for x in $^; do basename $$x .pot | tr 'A-Z' 'a-z'>> $@; done
 
 pull-po:
-	for r in $$(cat RESOURCES); do tx pull -r $(TX_DOMAIN).$$r -a; done
+	for r in $$(cat RESOURCES | tr 'A-Z' 'a-z'); do tx pull -r $(TX_DOMAIN).$$r -a; done
 
