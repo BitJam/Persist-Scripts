@@ -82,7 +82,11 @@ main() {
         "$(gt "Checking for existing files and")"       \
         "$(gt "Checking if there is enough room ...")"  \
 
-    excludes="$(rootfs_excludes $AUFS_RAM_MP)"
+    local upper
+    local root_fs=$(df -T / | tail -n1 | awk '{print $2}')
+    [ "$root_fs" = "overlay" ] && upper="/upper"
+
+    excludes="$(rootfs_excludes $AUFS_RAM_MP$upper)"
     exclude_size="$(du_size $excludes)"
 
     pdev_total=$(all_space  $PERSIST_MP)
@@ -145,7 +149,7 @@ main() {
 
     #lifo_string TO_DELETE $exclude_file
 
-    rootfs_excludes "/" | sort -u > $exclude_file
+    rootfs_excludes "/${upper#/}" | sort -u > $exclude_file
 
     rsync_opts="-a --delete-excluded --exclude-from=$exclude_file $AUFS_RAM_MP/ $ROOTFS_MP/"
     vmsg "rsync $rsync_opts"
