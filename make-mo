@@ -24,7 +24,6 @@ main() {
     done
 }
 
-
 should_copy() {
     local sorc=$1  targ=$2
 
