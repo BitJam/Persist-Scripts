@@ -25,12 +25,21 @@ SCREEN_WIDTH=$(stty size 2>/dev/null | cut -d" " -f2)
 # This is needed for restarting
 CMDLINE_ARGS=("$@")
 
-       GUI_TERM="x-terminal-emulator"
-      TERM_OPTS="--geometry=+50+50 -e"
+       GUI_TERM="urxvt"
+      TERM_OPTS="-e"
  TERM_TITLE_OPT="--title"
      GUI_FILERS="rox thunar spacefm"
 
         ARCHIVE="archive"
+
+TERM_PROGS="$(readlink -f /etc/alternatives/x-terminal-emulator)"
+TERM_PROGS="$TERM_PROGS urxvt xfce4-terminal lxterminal konsole"
+
+for term in $TERM_PROGS; do
+    which $term &>/dev/null || continue
+    GUI_TERM=$term
+    break
+done
 
 STD_OPTIONS="
     b,bright||COLOR_BRIGHT
@@ -116,14 +125,14 @@ check_for_yad() {
         unset SET_GUI
         return
     fi
-    which x-terminal-emulator &> /dev/null || exit
-    vmsg "$(echo "No yad found.  Trying to open a x-terminal-emulator ...")"
+    which $GUI_TERM &> /dev/null || exit
+    vmsg "$(printf "No yad found.  Trying to open a %s window  ..." $GUI_TERM)"
     for arg in ${CMDLINE_ARGS[@]}; do
         args="$args $arg"
     done
-    vmsg "x-terminal-emulator --execute bash -c \"$0 $args --cli; bash\""
+    vmsg "$GUI_TERM -e bash -c \"$0 $args --cli; bash\""
     clean_up
-    x-terminal-emulator --execute bash -c "$0 $args --cli; bash" &>/dev/null &
+    $GUI_TERM -e bash -c "$0 $args --cli; bash" &>/dev/null &
     exit
 }
 
