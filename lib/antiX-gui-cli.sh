@@ -131,6 +131,16 @@ error_box() {
     exit 2
 }
 
+exit_box() {
+    kill_bg_info_box -f
+    [ "$SET_GUI" ] && _dialog_box exit "" "" "$@"
+
+    #[ "$SET_QUIET" ] || echo "$ME ${ERROR_COLOR}error$NO_COLOR:" >&2
+    echo -e "$(markup_text "$@")" >&2
+    exit 2
+}
+
+
 yes_no_box() {
     _dialog_box "yes_no" "$@"
 }
@@ -283,6 +293,7 @@ _dialog_box_gui() {
         yes_no)  opts="$opts $YAD_YES_NO_OPTS";;
      info|okay)  opts="$opts $YAD_INFO_OPTS";;
          error)  opts="$opts $YAD_ERROR_OPTS";;
+          exit)  opts="$opts $YAD_EXIT_OPTS";;
           text)  field_type="";;
          combo)  field_type="CB";;
 

@@ -36,6 +36,9 @@ YAD_ERROR_OPTS="
     --image=gtk-dialog-error
     --button=gtk-ok:0"
 
+YAD_EXIT_OPTS="
+    --button=gtk-ok:0"
+
 YAD_INFO_OPTS="
     --button=gtk-ok:0"
 
