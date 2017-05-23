@@ -61,6 +61,10 @@ prep_main() {
     need_root
     start_logging live-remaster
 
+    if [ "$SET_GUI" ]; then
+        which $GUI_TERM &>/dev/null \
+            || error_box_pf "The %s program needs %s to be installed." $ME $GUI_TERM
+    fi
     trap clean_up EXIT
     create_lock
 }
