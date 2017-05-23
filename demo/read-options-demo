@@ -1,0 +1,97 @@
+#!/bin/bash
+
+source /usr/local/lib/antiX/antiX-common.sh  "$@"
+
+# Override the standard options for this demo.
+# Please feel free to edit this list.
+STD_OPTIONS="
+    c,cli|~|GUI
+    g,gui|f|GUI 
+    h,help|f|HELP 
+    n,name|o|NAME
+    q,quiet|f|QUIET
+    s,size|n|SIZE
+"
+
+
+USAGE="$(cat <<End_Usage
+
+Usage: [p]$ME[/] <options>
+
+    This program demonstrates the read_options() function that reads
+    command line options based on simple specifications in a string.
+
+    This demo will print out the [f]SET_<name>[/] and [f]OPT_<name>[/] variables
+    set by the read_options() routine.
+
+Each option in the string has three components:
+
+        1) a comma separated list of aliases
+        2) a type (see below)
+        3) a variable name stem that gets prefixed with [f]SET_[/] and [f]OPT_[/].
+
+
+Specifying option types:
+
+    [i]|f|[/]   Simple yes/no flag.  Set [f]SET_<name>[/] to "true".
+
+    [i]|| [/]   Same as [i]|f|[/].
+
+    [i]|~|[/]   Negation flag.  Unset the [f]SET_<name>[/] variable.
+
+    [i]|o|[/]   In addition to setting [f]SET_<name>[/] to "true", also put the value
+    [i]   [/]   of the next argument into [f]OPT_<name>[/].  You're allowed to use the
+    [i]   [/]   single argument form as well: [p]--name=value[/].
+
+    [i]|n|[/]   Same as [i]|o|[/] but also makes sure the input value is a non-negative
+    [i]   [/]   integer.
+
+
+[b]Note 1:[/b]
+    By using both [f]SET_\$name[/] and [f]OPT_\$name[/], it is very easy to detect when
+    a user sets a value to the empty string.
+
+[b]Note 2:[/b]
+    I accept a single dash, as well as a double dash, in front of arguments
+    that have more than two letters.  This is a feature, not a bug.  It can
+    be eliminated by removing the first branch in each of the two patterns
+    in the case statement inside of read_options().
+
+The follow options are available in this demo:
+
+    -c|--cli              unset SET_GUI
+    -g|--gui              set SET_GUI
+    -h|--help             show this help (by setting SET_HELP)
+    -n|--name  <name>     put <name> into OPT_NAME
+    -q|--quiet            set SET_QUIET
+    -s|--size  <number>   put <number> into OPT_SIZE
+
+These option were specified with the following multi-line string:
+
+[f]STD_OPTIONS="$STD_OPTIONS"[/]
+
+Edit that variable to add your own options to this demo.
+End_Usage
+)"
+
+USAGE=$(markup_text "$USAGE")
+
+[ "$#" -gt 0 ] || usage
+
+unset SET_GUI
+read_options "$@"
+
+for o in $STD_OPTIONS; do
+    type=$(echo $o  | cut -d"|" -f2)
+    name=$(echo $o  | cut -d"|" -f3)
+    [ "$type" = "~" ] && continue
+
+    eval "val=\"\$SET_$name\""
+    [ "$val" ] || continue
+    echo "SET_$name=$val"
+
+    eval "val=\"\$OPT_$name\""
+    [ "$val" ] || continue
+    echo "OPT_$name=$val"
+done
+

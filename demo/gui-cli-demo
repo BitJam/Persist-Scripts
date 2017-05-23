@@ -1,0 +1,203 @@
+#!/bin/bash
+
+source /usr/local/lib/antiX/antiX-common.sh
+
+TITLE="GUI/CLI Library Demo"
+
+BLURB="
+A simple demonstration of the combined GUI (Graphic User Interface)
+and CLI (Command Line interface) provided by the [f]antiX-gui-cli.sh[/f]
+library.  Use the [p]-c[/] or [p]--cli[/] flag to see the CLI interface in an
+X-windows terminal.
+
+Look at the [f]$0[/] file to see the code that was used
+to implement this demo."
+
+trap clean_up EXIT
+
+read_options "$@"
+
+show_cli_title
+
+MAIN_MENU="Info Box!Okay Box!Text Input!Yes No Box!No Yes Box"
+MAIN_MENU="$MAIN_MENU!BG Info Box!Size Select!Device Select"
+MAIN_MENU="$MAIN_MENU!Exit Box!Error Box!Quit"
+
+while true; do
+    combo_box action "$MAIN_MENU" -a -c                     \
+        "GUI/CLI Demo"                                      \
+        ""                                                  \
+        "This main menu is an example of a [b]combo_box[/]" \
+        ""                                                  \
+        "Please select an element to be demonstrated"       \
+        "(in the GUI you will then have to hit [p]OK[/])"   \
+        ""                                                  \
+        "(use [p]-c[/] or [p]--cli[/] for CLI mode)"        \
+        "(use [p]-h[/] or [p]--help[/] for help)"           \
+        ""
+
+        vmsg "You selected [p]$UI_RESULT[/]"
+
+        case "$UI_RESULT" in
+            "Info Box")
+                info_box                                                    \
+                    "Info Box Demo"                                         \
+                    ""                                                      \
+                    "In GUI mode an [b]info_box[/] and an [b]okay_box[/b]"  \
+                    "are the same."                                         \
+                    ""                                                      \
+                    "In CLI mode, the [b]okay_box[/] waits for the user to" \
+                    "press a key but the [b]info_box[/] does not."          \
+                    ""                                                      \
+                    "This is a [b]info_box[/b]."
+                ;;
+            "Okay Box")
+                okay_box                                                    \
+                    "Okay Box Demo"                                         \
+                    ""                                                      \
+                    "In GUI mode an [b]info_box[/] and an [b]okay_box[/b]"  \
+                    "are the same."                                         \
+                    ""                                                      \
+                    "In CLI mode, the [b]okay_box[/] waits for the user to" \
+                    "press a key but the [b]info_box[/] does not."          \
+                    ""                                                      \
+                    "This is an [b]okay_box[/b]."
+                ;;
+            "Text Input")
+                get_text "Enter text" "default value"        \
+                    "Get Text Demo"                          \
+                    ""                                       \
+                    "Please enter some text"                 \
+                    ""                                       \
+
+                    okay_box -c                              \
+                    "[title]Get Text Demo[/]"                \
+                    ""                                       \
+                    "You entered: \"[p]$UI_RESULT[/]\""      \
+                    ""                                       \
+                ;;
+
+            "Yes No Box")
+                yes_no_box                                              \
+                    "Yes No Box Demo"                                   \
+                    ""                                                  \
+                    "This is a [b]yes_no_box[/]."                       \
+                    ""                                                  \
+                    "In GUI mode it is the same as a [b]no_yes_box[/]." \
+                    "In CLI mode this box defaults to [p]yes[/]."       \
+                    ""                                                  \
+                    "Please select either yes or no."                   \
+                    ""
+                    if [ "$?" = "0" ]; then
+                        okay_box -c                                    \
+                            "Yes No Box Demo"                          \
+                            ""                                         \
+                            "You selected [p]Yes[/]!"                  \
+                            ""
+                    else
+                        okay_box -c                                    \
+                            "Yes No Box Demo"                          \
+                            ""                                         \
+                            "You selected [p]No[/]!"                   \
+                            ""
+                    fi
+                ;;
+            "No Yes Box")
+                no_yes_box                                              \
+                    "No Yes Box Demo"                                   \
+                    ""                                                  \
+                    "This is a [b]no_yes_box[/]."                       \
+                    ""                                                  \
+                    "In GUI mode it is the same as a [b]yes_no_box[/]." \
+                    "In CLI mode this box defaults to [p]no[/]."        \
+                    ""                                                  \
+                    "Please select either yes or no."                   \
+                    ""
+                    if [ "$?" = "0" ]; then
+                        okay_box -c                                     \
+                            "No Yes Box Demo"                           \
+                            ""                                          \
+                            "You selected [p]Yes[/]!"                   \
+                            ""
+                    else
+                        okay_box -c                                     \
+                            "No Yes Box Demo"                           \
+                            ""                                          \
+                            "You selected [p]No[/]!"                    \
+                            ""
+                    fi
+                ;;
+
+            "BG Info Box")
+                yes_no_box                                                \
+                    "Background Info Box Demo"                            \
+                    ""                                                    \
+                    "This only works in GUI mode by design."              \
+                    "The [p]--quiet[/] flag also disables it."            \
+                    ""                                                    \
+                    "It launches an info box in a background process"     \
+                    "while another taks works in the foreground"          \
+                    ""                                                    \
+                    "Select [p]yes[/] to see it for 5 or 6 seconds"       \
+                    ""  || continue
+
+                bg_info_box -o "$PULSATE"        \
+                    "Background Info Box Demo"   \
+                    ""                           \
+                    "This should last 6 seconds" \
+                    ""
+                delay 5
+                kill_bg_info_box
+                ;;
+            "Size Select")
+                select_size -max 4000                                   \
+                    "Select Size Demo"                                  \
+                    ""                                                  \
+                    "[b]select_size[/] is part of [f]live-common.sh[/]" \
+                    "but it is cool so it is included here."            \
+
+                    okay_box -c                              \
+                    "Select Size Demo"                       \
+                    ""                                       \
+                    "You chose: [n]$UI_RESULT[/] meg"        \
+                    ""                                       \
+                ;;
+            "Device Select")
+                select_device                                \
+                    "Device Select Demo"                     \
+                    ""                                       \
+                    "Please select from the devices below."  \
+                    ""                                       \
+                    && okay_box -c                           \
+                    "[title]Device Select Demo[/]"           \
+                    ""                                       \
+                    "You selected [f]$UI_RESULT[/]."         \
+                    ;;
+
+            "Exit Box")
+                yes_no_box -c                                       \
+                    "Exit Box Demo"                                 \
+                    ""                                              \
+                    "An [b]exit_box[/] will cause this program to"  \
+                    "exit when the exit_box closes."                \
+                    ""                                              \
+                    "Do you want to see an [b]exit_box[/]?"         \
+                    ""  && exit_box "This is an [b]exit_box[/]"
+                    ;;
+
+            "Error Box")
+                yes_no_box -c                                       \
+                    "Error Box Demo"                                \
+                    ""                                              \
+                    "An [b]error_box[/] will cause this program to" \
+                    "exit when the error_box closes."               \
+                    ""                                              \
+                    "Do you want to see an [b]error_box[/]?"        \
+                    ""  && error_box "This is an [b]error_box[/]"
+                ;;
+            "Quit")
+                vexit "quit"
+                ;;
+        esac
+done
+
