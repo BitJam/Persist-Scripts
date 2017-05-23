@@ -628,7 +628,7 @@ du_size() {
 # compromise that will work well for most people in most situations.
 free_space() {
     local mp=$1
-    local free=$(df -m $mp | awk '{size=$4}END{print size}')
+    local free=$(df -Pm $mp | awk '{size=$4}END{print size}')
     local sparse new_free
     for sparse in $mp/*/rootfs $mp/*/homefs; do
         test -e $sparse || continue
