@@ -38,7 +38,7 @@ $(echo "$cards")
 Read_Cards
         test -n "$scard_options" || exit_box "$(gt "No sound cards/devices were found.  Nothing to do.")"
 
-        local prev_card=$(sed -n -r 's/^\s*defaults.pcm.!card\s+(.*)/\1/p' $ASOUND_FILE | head -n 1)
+        local prev_card=$(sed -n -r 's/^\s*defaults.pcm.!card\s+(.*)/\1/p' $ASOUND_FILE 2>/dev/null | head -n 1)
         local prev_line=
         [ "$prev_card" ] && prev_line=$(pfgt "Current default is %s" "[b]$prev_card[/b]")
         vmsg "prev_card: $prev_card"
