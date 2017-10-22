@@ -185,7 +185,7 @@ main() {
         vmsg "$t"
     done
 
-    leftovers="rootfs.old rootfs.bad $SQFILE_NAME.new $SQFILE_NAME.old $SQFILE_NAME.bad $SQFILE_NAME.tmp"
+    leftovers="$SQFILE_NAME.old rootfs.old rootfs.bad $SQFILE_NAME.new $SQFILE_NAME.bad $SQFILE_NAME.tmp"
 
     BAD_FILES=""
     for file in $leftovers; do
