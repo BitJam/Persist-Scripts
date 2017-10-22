@@ -315,6 +315,8 @@ Version_Info_End
 
     remaster_excludes "" $(basename $BIND_ROOT) $pretend_excludes $general_excludes | sort -u > $exclude_file
 
+    test -L /etc/localtime && echo etc/localtime >> $exclude_file
+
     #--- create the tmp/new squashfs file
     MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $OTHER_OPTS -wildcards -ef $exclude_file"
     #MKSQ_OPTS="$FROM $tmp_file"
