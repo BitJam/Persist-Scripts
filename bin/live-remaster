@@ -339,32 +339,49 @@ Version_Info_End
     T0=$(get_time)
     if [ "$SET_GUI" ]; then
         ($GUI_TERM $TERM_TITLE_OPT "$(gt "Remastering -- DO NOT CLOSE")" $TERM_OPTS $MKSQ_COMMAND &>/dev/null)&
-        mksq_pid=$!
-        disown $mksq_pid
+        local term_pid=$!
+        sleep 0.1
+        local mksq_pid=$(pgrep run-mksquashfs)
+
+        #pgrep -l -P  $mksq_pid; echo
 
         gui_wait
 
         while true; do
 
             if ! [ -d "/proc/$mksq_pid" ]; then
-                remaster_done="true"
                 finish_remaster
-                kill -9 $GUI_PID &> /dev/null
+                [ -n "$GUI_PID" ] && kill -9 $GUI_PID &> /dev/null
                 break
-            fi
 
-            if ! [ -d "/proc/$GUI_PID"  ]; then
-                if yes_no_box -c "$(ctitle "Remaster in Progress")" \
-                    "$(gt "Do you REALLY want to stop midway?")"; then
-                    kill $mksq_pid
+            elif ! [ -d "/proc/$GUI_PID"  ]; then
+                # Stop everything
+                pkill --signal STOP mksquashfs
+
+                yes_no_box -c "$(ctitle "Remaster in Progress")" "$(gt "Do you REALLY want to stop midway?")"
+                local ret=$?
+
+                # Restart everything
+                pkill --signal CONT mksquashfs
+
+                if [ $ret -eq 0 ]; then
+                    pkill mksquashfs
+                    send_sig TERM $mksq_pid
+                    send_sig TERM $term_pid
+
+                    # Kill off our children
+                    pkill -P $$
+
                     rm -f $tmp_file
                     sync
-                    sleep 1
+                    sleep 0.1
+
+                    local_clean_up && trap EXIT
+
                     exit
                 fi
 
-                if [ -d "/proc/$mksq_pid" ]; then
-                    remaster_done="true"
+                if ! [ -d "/proc/$mksq_pid" ]; then
                     GUI_PID=
                     finish_remaster
                     break
@@ -373,7 +390,7 @@ Version_Info_End
                 gui_wait
             fi
 
-            sleep 1
+            sleep 0.1
         done
 
     else
@@ -420,6 +437,15 @@ Version_Info_End
             "" "" \
             && persist-makefs --rootfs $opts
     exit 0
+}
+
+send_sig() {
+    local pid sig=${1:-TERM} ; shift
+    for pid; do
+        pkill --signal $sig $pid
+        disown $pid     &>/dev/null
+        kill -$sig $pid &>/dev/null
+    done
 }
 
 gui_wait() {
