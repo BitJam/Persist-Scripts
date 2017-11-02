@@ -20,6 +20,8 @@
 # Note: 262144 = 0x40000
 OTHER_OPTS="-b 262144"
 
+DEF_TZ="America/New_York"
+
 # Only needed for the location of the protect files
 source /usr/local/lib/antiX/antiX-get-param.sh
 
@@ -314,6 +316,11 @@ Version_Info_End
     #lifo_string TO_DELETE $exclude_file
 
     remaster_excludes "" $(basename $BIND_ROOT) $pretend_excludes $general_excludes | sort -u > $exclude_file
+
+    local cur_tz=$(cat /etc/timezone 2>/dev/null)
+    if [ -L /etc/localtime -a -n "$SET_GENERAL" -a "$cur_tz" != "$DEF_TZ" ]; then
+        echo etc/localtime >> $exclude_file
+    fi
 
     #--- create the tmp/new squashfs file
     MKSQ_OPTS="$MKSQ_OPTS $FROM $tmp_file $OTHER_OPTS -wildcards -ef $exclude_file"
