@@ -344,9 +344,16 @@ Version_Info_End
     T0=$(get_time)
     if [ "$SET_GUI" ]; then
         ($GUI_TERM $TERM_TITLE_OPT "$(gt "Remastering -- DO NOT CLOSE")" $TERM_OPTS $MKSQ_COMMAND &>/dev/null)&
-        local term_pid=$!
-        sleep 0.1
-        local mksq_pid=$(pgrep run-mksquashfs)
+        local term_pid=$!  mksq_pid i
+
+        # Try to get the PID for 3 seconds and then bailout
+        for i in $(seq 1 30); do
+            mksq_pid=$(pgrep run-mksquashfs)
+            [ -n "$mksq_pid" ] && break
+            sleep 0.1
+        done
+        vmsg "pgrep interations: $i"
+        [ -z "$mksq_pid" ] && error_box_pf "Problem starting mksquashfs.  Could not get PID."
 
         #pgrep -l -P  $mksq_pid; echo
 
