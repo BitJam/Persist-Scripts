@@ -158,7 +158,7 @@ main() {
 
        lz4) lz4_factor=100
             gz_factor=72
-            zz_factor=60
+            xz_factor=60
             ;;
 
         # This is a little lame
