@@ -502,9 +502,10 @@ gui_wait() {
 # Rely on local variables propogating (lazy)
 # This routine should prevent the 3-second dead time before last screen in gui mode
 finish_remaster() {
-    sync
     elapsed=$(elapsed $T0)
     qmsg "mksquashfs took $elapsed"
+    qmsg "Please wait for the file system to sync ..."
+    sync
 
     [ -f $ret_file ] || remaster_error "Remastering Terminated Early"
 
