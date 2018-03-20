@@ -138,38 +138,53 @@ main() {
     local fs_new_size=$(( $fs_new_size - $exclude_size ))
     local old_rat1000=$((1000 * sq_old_size / fs_old_size))
 
-    if is_xz_squashfs $(readlink -f $SQFILE_FULL); then
-        old_comp=xz
-        gz_factor=122
-        xz_factor=100
-        if [ $old_rat1000 -gt 345 ]; then
-            qmsg 'Strange, we detected xz compression but the ratio was $old_rat1000/1000 > .345'
-        fi
-   else
-        old_comp=gzip
-        gz_factor=100
-        xz_factor=82
+    local old_comp=$(sqfs_comp_type $(readlink -f $SQFILE_FULL))
+    vmsg "Previous compression type: $old_comp"
+    local lz4_factor gz_factor xz_factor
+    case $old_comp in
+        xz) lz4_factor=167
+            gz_factor=121
+            xz_factor=100
+            if [ $old_rat1000 -gt 345 ]; then
+                qmsg 'Strange, we detected xz compression but the ratio was $old_rat1000/1000 > .345'
+            fi ;;
 
-        if [ $old_rat1000 -lt 345 ]; then
-            qmsg 'Strange, we detected gzip compression but the ratio was $old_rat1000/1000 < .345'
-        fi
+      gzip) lz4_factor=138
+            gz_factor=100
+            xz_factor=83
+            if [ $old_rat1000 -lt 345 ]; then
+                qmsg 'Strange, we detected gzip compression but the ratio was $old_rat1000/1000 < .345'
+            fi;;
 
-   fi
+       lz4) lz4_factor=100
+            gz_factor=72
+            zz_factor=60
+            ;;
+
+        # This is a little lame
+        *)  lz4_factor=$((52 * $fs_old_size / $sq_old_size))
+             gz_factor=$((37 * $fs_old_size / $sq_old_size))
+             xz_factor=$((31 * $fs_old_size / $sq_old_size)) ;;
+    esac
 
     sq_new_size_est=$(( $fs_new_size * $sq_old_size / $fs_old_size))
-    gz_new_size_est=$((sq_new_size_est * gz_factor / 100))
-    xz_new_size_est=$((sq_new_size_est * xz_factor / 100))
+    gz_new_size_est=$((sq_new_size_est  *  gz_factor / 100))
+    xz_new_size_est=$((sq_new_size_est  *  xz_factor / 100))
+    lz4_new_size_est=$((sq_new_size_est * lz4_factor / 100))
 
     safe_estimate_gz=$(($gz_new_size_est + $SAFETY_MARGIN))
     safe_estimate_xz=$(($xz_new_size_est + $SAFETY_MARGIN))
+    safe_estimate_lz4=$(($lz4_new_size_est + $SAFETY_MARGIN))
 
     boot_remain_gz=$(($boot_avail - $gz_new_size_est))
     boot_remain_xz=$(($boot_avail - $xz_new_size_est))
+    boot_remain_lz4=$(($boot_avail - $lz4_new_size_est))
 
     exclude_size_est=$(( $exclude_size * $sq_old_size / $fs_old_size))
     main_text=(
         "$(fmt_size "current linuxfs size" $sq_old_size) ($old_comp)"
         "$(fmt_size "excluded files est."  $exclude_size_est)"
+        "$(fmt_size "estimated new size"   $lz4_new_size_est) (lz4)"
         "$(fmt_size "estimated new size"   $gz_new_size_est) (gzip)"
         "$(fmt_size "estimated new size"   $xz_new_size_est) (xz)"
         ""
@@ -179,6 +194,7 @@ main() {
         ""
         "$(fmt_size "boot device total" $boot_total)"
         "$(fmt_size "boot device free"  $boot_avail)"
+        "$(fmt_size "est. remaining"    $boot_remain_lz4) (lz4)"
         "$(fmt_size "est. remaining"    $boot_remain_gz) (gzip)"
         "$(fmt_size "est. remaining"    $boot_remain_xz) (xz)"
     )
@@ -236,22 +252,26 @@ main() {
         HOME=/root alsactl --ignore store
     fi
 
-    COMP_TYPE=xz
+    COMP_TYPE=lz4
 
+    lz4_option="lz4 $(gt "(compresses MUCH faster, boots faster)")"
     gzip_option="gzip $(gt "(compresses faster, boots faster)")"
       xz_option="xz $(gt "(compresses better)")"
 
     if [ $boot_avail -ge $safe_estimate_gz ]; then
 
-        combo_box compression-type "$gzip_option!$xz_option"                     \
+        combo_box compression-type "$lz4_option!$gzip_option!$xz_option"         \
             "$TITLE" ""                                                          \
             "$(gt "Please choose the type of compression to use")"               \
+            "$(pfgt "%s will take MUCH less time" "[b]lz4[/b]")"                 \
             "$(pfgt "%s will take less time" "[b]gzip[/b]")"                     \
             "$(pfgt "%s will result in a smaller file" "[b]xz[/b]")"
 
         #UI_RESULT=xz
         case $UI_RESULT in
             gzip*) COMP_TYPE="gzip" ;;
+              xz*) COMP_TYPE="xz"   ;;
+             lz4*) COMP_TYPE="lz4"  ;;
         esac
     fi
 
@@ -550,6 +570,30 @@ is_xz_squashfs() {
     return $?
 }
 
+sqfs_comp_type() {
+    local file=$1
+    comp_num=$(echo $(dd if="$file" bs=1 skip=20 count=2 status=none | od -An -tdI))
+    echo "comp_num: >$comp_num<" >&2
+    case $comp_num in
+        1) echo gzip ;;
+        2) echo lzma ;;
+        3) echo lzo  ;;
+        4) echo xz   ;;
+        5) echo lz4  ;;
+        *) echo unknown;
+    esac
+}
+
+#  From: https://superuser.com/questions/919025/what-was-the-squashfs-compression-method
+#  ╔═══╦════════════════════╦════════════════════╗
+#  ║ # ║ Compression Method ║ Compatible Version ║
+#  ╠═══╬════════════════════╬════════════════════╣
+#  ║ 1 ║ gzip               ║ 1.0 and newer      ║
+#  ║ 2 ║ lzma               ║ 4.1 and newer      ║
+#  ║ 3 ║ lzo                ║ 4.1 and newer      ║
+#  ║ 4 ║ xz                 ║ 4.2 and newer      ║
+#  ║ 5 ║ lz4                ║ 4.3 and newer      ║
+#  ╚═══╩════════════════════╩════════════════════╝
 prep_main "$@"
 
 main
