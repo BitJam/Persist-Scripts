@@ -11,11 +11,11 @@ antiX_lib=/usr/local/lib/antiX
 source $antiX_lib/antiX-common.sh     "$@"
 last_ps_file=$LIVE_DIR/config/last-persist-save
 
-TITLE="$(gt "antiX Save Persistent Root")"
+TITLE=$"antiX Save Persistent Root"
 
-BLURB="$(pf "\n    %s\n    %s\n"                                                                  \
-    "`pfgt "Manually save filesystem changes in %s file for persistent root." "[f]rootfs[/]"`"    \
-    "`pfgt "You MUST run a program like this to save your filesystem changes." "[b]" "[/]"`")"
+BLURB="$(pf "\n    %s\n    %s\n"                                                                 \
+    "`pf $"Manually save filesystem changes in %s file for persistent root." "[f]rootfs[/]"`"    \
+    "`pf $"You MUST run a program like this to save your filesystem changes." "[b]" "[/]"`")"
 
 SAFETY_MARGIN=2
 
@@ -42,22 +42,14 @@ main() {
 
     grep -q "^PERSISTENCE=.*dynamic" /live/config/initrd.out || error_box_pf "%s was not enabled.  Cannot %s" "Dynamic root persistence" "${0##*/}"
 
-    noisy_yes_no_box                              \
-        "$(gt "Shall we begin?")"                 \
+    noisy_yes_no_box                       \
+        $"Shall we begin?"                 \
         || vexit "Stopping at user's request"
 
     trap clean_up EXIT
     create_lock
 
-    if [ "$PERSIST_UUID" ]; then
-        uuid_dev=$(blkid -U "$PERSIST_UUID" -c /dev/null)
-        [ -z "$uuid_dev" ] &&  error_box \
-        "$(pfgt "The persistence device with UUID %s was not found" "[n]$PERSIST_UUID[/]")" \
-        "$(pfgt "Please plug in the persistence device and try again")"
-
-        vpf "Using device %s with UUID %s" "[n]$uuid_dev[/]" "[n]$PERSIST_UUID[/]"
-        PERSIST_DEV=$uuid_dev
-    fi
+    check_persist_uuid || error_box "Error when checking for persistence device"
 
     if which alsactl &>/dev/null; then
         vpf "Storing volume settings"
@@ -76,11 +68,11 @@ main() {
     # Check for available space. If ok continue else stop.
     #FIXME: should offer to make a new rootfs if we don't have enough room.
 
-    bg_info_box -o "$PULSATE"                           \
-        "$TITLE"                                        \
-        ""                                              \
-        "$(gt "Checking for existing files and")"       \
-        "$(gt "Checking if there is enough room ...")"  \
+    bg_info_box -o "$PULSATE"                    \
+        "$TITLE"                                 \
+        ""                                       \
+        $"Checking for existing files and"       \
+        $"Checking if there is enough room ..."  \
 
     local upper
     local root_fs=$(df -T / | tail -n1 | awk '{print $2}')
@@ -114,8 +106,8 @@ main() {
         "$(fmt_size "required rootfs space"  $need_size)"
         "$(fmt_size "approx. transfer size"  $xfer_size)"
         ""
-        "$(pf "%12s: %s"  "`gt "persist device"`" "[f]$PERSIST_DEV[/]")"
-        "$(pf "%12s: %s"  "`gt "mounted at"`"     "[f]$PERSIST_MP[/]")"
+        "$(pf "%12s: %s"  $"persist device" "[f]$PERSIST_DEV[/]")"
+        "$(pf "%12s: %s"  $"mounted at"     "[f]$PERSIST_MP[/]")"
         ""
         "$(fmt_size "persist device total" $pdev_total)"
         "$(fmt_size "persist device free"  $pdev_avail)"
@@ -135,15 +127,15 @@ main() {
         error_box_pf "Insufficient space.  Have: %s. Need: %s." "[n]$safe_full[/]" "[n]$need_size[/]"
 
     noisy_yes_no_box                                    \
-        "$(gt "Ready to sync file system changes")"     \
+        $"Ready to sync file system changes"     \
         "[fixed]"                                       \
         "${main_text[@]}"                               \
         "[/]"                                           \
-        "$(gt "Shall we begin?")"                       \
+        $"Shall we begin?"                       \
         || vexit "Stopping at user's request"
 
     bg_info_box -o "$PULSATE" "$TITLE" ""            \
-    "$(gt "Performing rsync ... please be patient")" \
+    $"Performing rsync ... please be patient" \
         ""
     exclude_file=$CONF_DIR/rsync.exclude
 
@@ -179,23 +171,23 @@ main() {
     kill_bg_info_box
 
     [ "$rsync_ret" != "0" ] && error_box                                      \
-        "$(pfgt "%s The rsync command failed Failed! %s" "[e][b]" "[/][/]")"  \
+        "$(pf $"%s The rsync command failed Failed! %s" "[e][b]" "[/][/]")"  \
         ""                                                                    \
-        "$(pfgt "It returned an exit code of %s" "[n]$rsync_ret[/]")"         \
-        "$(gt   "See the rsync man page to look up its meaning.")"            \
+        "$(pf $"It returned an exit code of %s" "[n]$rsync_ret[/]")"         \
+        $"See the rsync man page to look up its meaning."            \
         ""
 
     if [ "$SET_QUIET" ]; then
-        timeout_box 2 "$(pfgt "%s succeeded" $ME)"
+        timeout_box 2 "$(pf $"%s succeeded" $ME)"
         exit 0
     fi
 
     date +%s > $last_ps_file
 
     info_box                                              \
-        "$(pfgt "%s succeeded" $ME)"                      \
+        "$(pf $"%s succeeded" $ME)"                       \
         ""                                                \
-        "$(gt "    Your changes were saved in:")"         \
+        $"    Your changes were saved in:"                \
         "    [f]$PERSIST_FILE[/]"                         \
         "[fixed]"                                         \
         "$(fmt_size "total rootfs space" $full_rootfs)"   \
@@ -227,6 +219,65 @@ check_vid() {
         && error_box_pf "Version id inside of %s file does not match" "[n]rootfs[/]"
 
     return 0
+}
+
+check_persist_uuid() {
+    local uuid_dev=$(blkid -U "$PERSIST_UUID" -c /dev/null)
+    [ -n "$uuid_dev" ] && return 0
+
+    if [ "$ENCRYPTED" ]; then
+        local crypt_dev=$(blkid -U "$CRYPT_UUID" -c /dev/null)
+        [ -z "$crypt_dev" ] && error_box \
+            "$(pf $"The encrypted partition with UUID %s was not found" "[n]$CRYPT_UUID[/]")" \
+            $"Please plug in the live-usb device and try again"
+
+        local crypt_name=$ME
+        if [ -z "$SET_GUI" ]; then
+            echo "Encrypted live-usb detected"
+            echo "You will be asked to enter the passphrase below"
+            cryptsetup open --type luks $crypt_dev $crypt_name || error_box \
+                "$(pf $"Failed to open the encrypted partition")"
+
+        else
+            local try max_try=3 fail
+            for try in $(seq 1 $max_try); do
+                get_text title ""                                         \
+                $"Encrypted live-usb detected"                            \
+                ""                                                        \
+                $"Be sure to set the keyboard layout to English"          \
+                ""                                                        \
+                "$(pf $"This is try %s out of $s" $try $max_try)"         \
+                ""                                                        \
+                $"Please enter the passphrase" \
+                ""
+
+                fail=
+
+                echo "$UI_RESULT" |  cryptsetup open --type luks $crypt_dev $crypt_name --key-file - && break
+
+                fail=true
+
+                warn_box $"That passphrase did not match"    \
+                         ""                                  \
+                         $"Please try again"
+            done
+
+            [ "$fail" ] && error_box \
+                "$(pf $"Passphrase failed to match after %s attempts" $max_try)"
+        fi
+
+
+        PERSIST_DEV=/dev/mapper/$crypt_name
+
+        return 0
+    fi
+
+    [ -z "$uuid_dev" ] &&  error_box \
+        "$(pf $"The persistence device with UUID %s was not found" "[n]$PERSIST_UUID[/]")" \
+        "$(pf $"Please plug in the persistence device and try again")"
+
+    vpf "Using device %s with UUID %s" "[n]$uuid_dev[/]" "[n]$PERSIST_UUID[/]"
+    PERSIST_DEV=$uuid_dev
 }
 
 main "$@"
