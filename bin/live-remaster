@@ -576,12 +576,12 @@ sqfs_comp_type() {
     comp_num=$(echo $(dd if="$file" bs=1 skip=20 count=2 status=none | od -An -tdI))
     echo "comp_num: >$comp_num<" >&2
     case $comp_num in
-        1) echo gzip ;;
-        2) echo lzma ;;
-        3) echo lzo  ;;
-        4) echo xz   ;;
-        5) echo lz4  ;;
-        *) echo unknown;
+        1) echo gzip    ;;
+        2) echo lzma    ;;
+        3) echo lzo     ;;
+        4) echo xz      ;;
+        5) echo lz4     ;;
+        *) echo unknown ;;
     esac
 }
 
