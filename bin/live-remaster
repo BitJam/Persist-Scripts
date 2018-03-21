@@ -17,6 +17,9 @@
 # GETTEXT_KEYWORD="fmt_size"
 # GETTEXT_KEYWORD="fmt_any"
 
+: ${USB_DIRTY_BYTES:=20000000}  # Need this small size for the progress bar to work
+unset ORIG_DIRTY_BYTES ORIG_DIRTY_RATIO
+
 # Note: 262144 = 0x40000
 OTHER_OPTS="-b 262144"
 
@@ -349,7 +352,9 @@ Version_Info_End
 
     vmsg "mksquashfs $MKSQ_OPTS"
 
-    #-jbb restore_live
+    set_dirty_bytes
+
+    #-jbb restore_live  ???
 
     #------------------------------------------------------------------------------
     #
@@ -503,6 +508,9 @@ gui_wait() {
 # This routine should prevent the 3-second dead time before last screen in gui mode
 finish_remaster() {
     elapsed=$(elapsed $T0)
+
+    restore_dirty_bytes_and_ratio
+
     qmsg "mksquashfs took $elapsed"
     qmsg "Please wait for the file system to sync ..."
     local t1=$(get_hundredths)
@@ -563,6 +571,9 @@ remaster_error() {
 local_clean_up() {
     # FIXME?
     echo "local clean up"
+
+    restore_dirty_bytes_and_ratio
+
     installed-to-live $FORCE_CLEAN cleanup
     clean_up
     return 0
@@ -614,6 +625,25 @@ to_mins_secs() {
 }
 
 get_hundredths() { cut -d" " -f22 /proc/self/stat; }
+
+#------------------------------------------------------------------------------
+# This makes the transfers a bit faster and makes the progress bars work.
+#------------------------------------------------------------------------------
+set_dirty_bytes() {
+    local bytes=${1:-$USB_DIRTY_BYTES}
+    ORIG_DIRTY_RATIO=$(sysctl -n vm.dirty_ratio)
+    ORIG_DIRTY_BYTES=$(sysctl -n vm.dirty_bytes)
+    sysctl vm.dirty_bytes=$bytes >> $LOG_FILE
+}
+
+#------------------------------------------------------------------------------
+# Restore to the original values
+#------------------------------------------------------------------------------
+restore_dirty_bytes_and_ratio() {
+    [ -n "$ORIG_DIRTY_BYTES" ] && sysctl vm.dirty_bytes=$ORIG_DIRTY_BYTES >> $LOG_FILE
+    [ -n "$ORIG_DIRTY_RATIO" ] && sysctl vm.dirty_ratio=$ORIG_DIRTY_RATIO >> $LOG_FILE
+    unset ORIG_DIRTY_BYTES ORIG_DIRTY_RATIO
+}
 
 
 prep_main "$@"
