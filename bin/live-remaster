@@ -505,7 +505,10 @@ finish_remaster() {
     elapsed=$(elapsed $T0)
     qmsg "mksquashfs took $elapsed"
     qmsg "Please wait for the file system to sync ..."
+    local t1=$(get_hundredths)
     sync
+    local t2=$(get_hundredths)
+    qmsg "sync took $(to_mins_secs $t1 $t2)"
 
     [ -f $ret_file ] || remaster_error "Remastering Terminated Early"
 
@@ -595,6 +598,24 @@ sqfs_comp_type() {
 #  ║ 4 ║ xz                 ║ 4.2 and newer      ║
 #  ║ 5 ║ lz4                ║ 4.3 and newer      ║
 #  ╚═══╩════════════════════╩════════════════════╝
+
+to_mins_secs() {
+    local dt=$1
+    [ "$2" ] && dt=$(($2 - dt))
+    if [[ $dt -lt 6000 ]]; then
+        printf "%03d" $dt | sed -r 's/(..)$/.\1/'
+        printf " secs"
+        return
+    fi
+    local mins=$((dt / 6000))
+    local hunds=$((dt - 6000 * mins))
+    local secs=$(printf "%04d" "$hunds" | sed -r 's/(..)$/.\1/')
+    printf "%d:%s  mins:secs" "$mins" "$secs"
+}
+
+get_hundredths() { cut -d" " -f22 /proc/self/stat; }
+
+
 prep_main "$@"
 
 main
