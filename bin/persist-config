@@ -95,7 +95,7 @@ edit_config() {
     fmt="[fixed][b]%15s:[/][/] %s   "
     combo_box save-mode "1 $_Automatic_!2 $_Semi_Automatic_!3 $_Manual_!4 $_Quit_" -n \
         "$TITLE" ""                                                    \
-        "Please choose auto-save mode."                                \
+        "$(gt "Please choose auto-save mode.")"                                \
         ""                                                             \
         "$mode_str"                                                    \
         ""                                                             \
