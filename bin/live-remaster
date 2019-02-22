@@ -368,7 +368,8 @@ Version_Info_End
 
     T0=$(get_time)
     if [ "$SET_GUI" ]; then
-        ($GUI_TERM $TERM_TITLE_OPT "$(gt "Remastering -- DO NOT CLOSE")" $TERM_OPTS $MKSQ_COMMAND &>/dev/null)&
+        #($GUI_TERM $TERM_TITLE_OPT "$(gt "Remastering -- DO NOT CLOSE")" $TERM_OPTS $MKSQ_COMMAND &>/dev/null)&
+        ($GUI_TERM $TERM_OPTS $MKSQ_COMMAND &>/dev/null)&
         local term_pid=$!  mksq_pid i
 
         # Try to get the PID for 3 seconds and then bailout
