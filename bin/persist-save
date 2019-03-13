@@ -39,6 +39,7 @@ main() {
     # First make sure script is run as root.
     need_root
     start_logging
+    save_log_file
 
     grep -q "^PERSISTENCE=.*dynamic" /live/config/initrd.out || error_box_pf "%s was not enabled.  Cannot %s" "Dynamic root persistence" "${0##*/}"
 

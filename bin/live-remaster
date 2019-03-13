@@ -65,6 +65,7 @@ prep_main() {
 
     need_root
     start_logging live-remaster
+    save_log_file
 
     if [ "$SET_GUI" ]; then
         which $GUI_TERM &>/dev/null \

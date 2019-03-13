@@ -2,6 +2,7 @@
 # GETTEXT_KEYWORD="pfgt_gui"
 
 LOG_FILE=/dev/null
+unset SAVE_LOG_FILE
 
 gt_gui() {
     gettext -d antiX-bash-libs "$1"
@@ -48,6 +49,25 @@ start_logging() {
 
     echo "--------------------------------------------------------------------" >> $LOG_FILE
     echo "$me started: $(date "+%F %T")" >> $LOG_FILE
+}
+
+
+#------------------------------------------------------------------------------
+# Signal we want to save the log file to /root/Live-usb-storage/live-logs/
+#------------------------------------------------------------------------------
+save_log_file() { SAVE_LOG_FILE=true; }
+
+
+#------------------------------------------------------------------------------
+# Actually save the log file
+#------------------------------------------------------------------------------
+_save_log_file() {
+    local targ_dir=/root/Live-usb-storage/live-logs
+    [ "$SAVE_LOG_FILE" ] || return 1
+    test -f $LOG_FILE    || return 1
+    test -d $targ_dir     || return 1
+    cp $LOG_FILE $targ_dir
+    return 0
 }
 
 # Verbose console messages

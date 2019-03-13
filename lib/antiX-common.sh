@@ -939,6 +939,11 @@ clean_up() {
     fi
 
     delete_files_rf $TEMP_DIR
+
+    # Save log file to /root/Live-usb-storage/live-logs/ if available
+    # and if asked to via save_log_file().
+    _save_log_file
+
     remove_lock
 
     [ "$SET_DUMP_ALL" ] && printenv | sed "s/^\([A-Za-z_]\+\)/$PARAM_COLOR\1$NO_COLOR/"
@@ -946,6 +951,7 @@ clean_up() {
 
     # If we need this then do it last.  Why is the above so slow?
     #kill_bg_info_box -f
+
 
     return 0
 }
