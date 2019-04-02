@@ -256,27 +256,64 @@ main() {
         HOME=/root alsactl --ignore store
     fi
 
-    COMP_TYPE=lz4
+    # Make sure the running kernel supports the compression type
+    COMP_TYPE=gzip
+    local   lz4_option="lz4 $(gt "(compresses MUCH faster, boots faster)")"
+    local  gzip_option="gzip $(gt "(compresses faster, boots faster)")"
+    local    xz_option="xz $(gt "(compresses better)")"
 
-    lz4_option="lz4 $(gt "(compresses MUCH faster, boots faster)")"
-    gzip_option="gzip $(gt "(compresses faster, boots faster)")"
-      xz_option="xz $(gt "(compresses better)")"
+    local  lz4_lab="$(pfgt "%s is not supported by this kernel" "[b]lz4[/b]")"
+    local gzip_lab="$(pfgt "%s will take less time" "[b]gzip[/b]")"
+    local   xz_lab="$(pfgt "%s is not supported by this kernel" "[b]xz[/b]")"
+
+    local have_lz4=true  have_xz=true  k_config=/boot/config-$(uname -r)
+    if test -r $k_config; then
+        grep -q "^CONFIG_SQUASHFS_LZ4=y" $k_config || have_lz4=
+        grep -q "^CONFIG_SQUASHFS_XZ=y"  $k_config || have_xz=
+    fi
+
+    local option_list=$gzip_option
+
+    if [ $boot_avail -lt $safe_estimate_lz4 ]; then
+        have_lz4=
+        lz4_lab="$(pfgt "There is not enough space to use %s compression" "[b]lz4[/b]")"
+    fi
+
+    if [ "$have_lz4" ]; then
+        option_list="$lz4_option!$option_list"
+        lz4_lab="$(pfgt "%s will take MUCH less time" "[b]lz4[/b]")"
+        COMP_TYPE=lz4
+    fi
+
+    if [ "$have_xz" ]; then
+        option_list="$option_list!$xz_option"
+        xz_lab="$(pfgt "%s will result in a smaller file" "[b]xz[/b]")"
+    fi
 
     if [ $boot_avail -ge $safe_estimate_gz ]; then
+        if [ -z "$have_lz4$have_xz" ]; then
+            info_box -c "$(pfgt "This kernel only supports %s compression" "[b]gzip[/b]")"
+            COMP_TYPE=gzip
+        else
+            combo_box compression-type "$option_list"                   \
+                "$TITLE" ""                                             \
+                "$(gt "Please choose the type of compression to use")"  \
+                    "$lz4_lab" \
+                    "$gzip_lab" \
+                    "$xz_lab"
 
-        combo_box compression-type "$lz4_option!$gzip_option!$xz_option"         \
-            "$TITLE" ""                                                          \
-            "$(gt "Please choose the type of compression to use")"               \
-            "$(pfgt "%s will take MUCH less time" "[b]lz4[/b]")"                 \
-            "$(pfgt "%s will take less time" "[b]gzip[/b]")"                     \
-            "$(pfgt "%s will result in a smaller file" "[b]xz[/b]")"
-
-        #UI_RESULT=xz
-        case $UI_RESULT in
-            gzip*) COMP_TYPE="gzip" ;;
-              xz*) COMP_TYPE="xz"   ;;
-             lz4*) COMP_TYPE="lz4"  ;;
-        esac
+            #UI_RESULT=xz
+            case $UI_RESULT in
+                gzip*) COMP_TYPE="gzip" ;;
+                  xz*) COMP_TYPE="xz"   ;;
+                 lz4*) COMP_TYPE="lz4"  ;;
+            esac
+        fi
+    elif [ $boot_avail -ge $safe_estimate_zx ]; then
+        info_box -c "Must use %s compression due to size constraints" "[b]xz[/b]"
+        COMP_TYPE="xz"
+    else
+        error_box_pf "There is not enough space to do a live-remaster"
     fi
 
     OTHER_OPTS="$OTHER_OPTS -comp $COMP_TYPE"
