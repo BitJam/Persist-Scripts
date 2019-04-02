@@ -574,7 +574,9 @@ finish_remaster() {
 
     qmsg 'Making md5 sum ...'
 
-    cat $new_file | md5sum > $SQFILE_FULL.md5.new
+    local md5_file=$SQFILE_FULL.md5.new
+    cat $new_file | md5sum > $md5_file
+    sed -i "s/ .*/  $SQFILE_NAME/" $md5_file
 
     local_clean_up && trap EXIT
 
