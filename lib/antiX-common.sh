@@ -16,7 +16,10 @@ antiX_lib=/usr/local/lib/antiX
 
 [ "$Static_antiX_libs" ] || source $antiX_lib/antiX-gui-cli.sh
 
-export TEXTDOMAIN=$(basename $0)
+# export TEXTDOMAIN=$(basename $0)
+# felix: fix to cater for symlinked scripts
+
+export TEXTDOMAIN=$(basename $(readlink -e $0))
 export TEXTDOMAINDIR=/usr/share/locale
 
 SCREEN_WIDTH=$(stty size 2>/dev/null | cut -d" " -f2)
