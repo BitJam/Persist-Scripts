@@ -451,8 +451,12 @@ read_conf_error() {
 }
 
 need_root() {
-    [ $UID -eq 0 ] && return
-    if [ "$SET_GUI" ] && which gksu &>/dev/null; then
+
+    if [ $UID -eq 0 ]; then
+        HOME=/root
+        return
+
+    elif [ "$SET_GUI" ] && which gksu &>/dev/null; then
         vmsg "Relaunching as root ..."
         clean_up
         exec gksu -- "$0" "${CMDLINE_ARGS[@]}"
