@@ -28,7 +28,7 @@ tty | grep -q ^/dev/tty && unset SET_GUI
 [ "$DISPLAY" ] || unset SET_GUI
 
 fmt_size() {
-    printf "$SIZE_FMT" "$(gettext "$1")" "$2"
+    printf "$SIZE_FMT" "$(gettext "$1")" "$(label_meg $2)"
 }
 
 fmt_any() {
@@ -51,6 +51,57 @@ start_logging() {
     echo "$me started: $(date "+%F %T")" >> $LOG_FILE
 }
 
+#------------------------------------------------------------------------------
+# Label sizes given in Megs (MiB)
+#------------------------------------------------------------------------------
+label_meg() { label_any_size "$1" " " MiB GiB TiB PiB EiB; }
+
+#------------------------------------------------------------------------------
+# More compact horizontally, for tables
+#------------------------------------------------------------------------------
+size_label_m() { label_any_size "$1" "" M G T P E; }
+
+#------------------------------------------------------------------------------
+# Bite the bullet and do it "right"
+#------------------------------------------------------------------------------
+label_any_size() {
+    local size=$1  sep=$2  u0=$3  unit=$4  meg=$((1024 * 1024))  new_unit ; shift 4
+
+    for new_unit; do
+        [ $size -lt $meg ] && break
+        size=$((size / 1024))
+        unit=$new_unit
+    done
+
+    if [ $size -ge 102400 ]; then
+        awk "BEGIN {printf \"%d$sep$unit\n\", $size / 1024}"
+    elif [ $size -ge 10240 ]; then
+        awk "BEGIN {printf \"%0.1f$sep$unit\n\", $size / 1024}"
+    elif [ $size -ge 1024 ]; then
+        awk "BEGIN {printf \"%0.2f$sep$unit\n\", $size / 1024}"
+    else
+        awk "BEGIN {printf \"%d$sep$u0\n\", $size}"
+    fi
+}
+
+#------------------------------------------------------------------------------
+# convert a label (created by label_meg) back to an integer size in Megabytes
+# (Not used ATM since it involves approximation)
+#------------------------------------------------------------------------------
+label_to_meg() {
+    local label=$1  meg=$((1024 * 1024))
+    size=${label%% *}
+
+    case $label in
+        *MiB) factor=1               ;;
+        *GiB) factor=1024            ;;
+        *TiB) factor=$meg            ;;
+        *PiB) factor=$((meg * 1024)) ;;
+           *) error_box "Conversion overflow for label %s" "$label" ;;
+    esac
+
+    awk "BEGIN{printf \"%d\", $size * $factor}"
+}
 
 #------------------------------------------------------------------------------
 # Signal we want to save the log file to /root/Live-usb-storage/live-logs/

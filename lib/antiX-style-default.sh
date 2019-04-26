@@ -8,8 +8,8 @@ LOADED_STYLE="true"
       MIN_WIDTH=50
     TEXT_MARGIN=8
         PULSATE="--progress --pulsate"
-       SIZE_FMT='%22s: [n]%7s[/] meg'
-        ANY_FMT='%22s: [n]%7s[/]'
+       SIZE_FMT='%22s: [n]%8s[/]'
+        ANY_FMT='%22s: [n]%8s[/]'
 
     ANTIX_IMAGE="/usr/local/lib/antiX/antiX-logo.png"
 
