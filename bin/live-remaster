@@ -217,7 +217,7 @@ main() {
     kill_bg_info_box
 
     [ $boot_avail -lt $safe_estimate_xz ] && \
-        error_box_pf "Have: %s megs available.  Need: %s." "[n]$boot_avail[/]" "[n]$safe_estimate_xz[/]"
+        error_box_pf "Have: %s MiB available.  Need: %s." "[n]$boot_avail[/]" "[n]$safe_estimate_xz[/]"
 
     while [ "$BAD_FILES" ]; do
         yes_no_box                                                        \
