@@ -9,12 +9,18 @@
 source /usr/local/lib/antiX/antiX-common.sh  "$@"
 
 SAFETY_MARGIN=10
-  rootfs_SIZE_PARAM="min_size=250 mid_size=100 max_size=4000 factor=50"
-  homefs_SIZE_PARAM="min_size=250 mid_size=100 max_size=3000 factor=25"
 
-    VFAT_MKFS_SIZES="250 375 500 750 1000 1500 2000 2500 3000 4000"
-         MKFS_SIZES="250 375 500 750 1000 1500 2000 2500 3000 4000 5000 6000"
    MKFS_FREE_MARGIN=20
+  rootfs_SIZE_PARAM="min_size=250 mid_size=100 max_size=8192  factor=50"
+  homefs_SIZE_PARAM="min_size=10  mid_size=100 max_size=10240 factor=25"
+        MKFS_SIZES="5 10 50 100 150 200 250 300 400 500 750 1024 1536 2048 2560 3072 4096
+                    5120 6144 8192 10240 12288 14336 16384 18432 20480 25600 30720 35840 40960
+                    46080  51200 61440 71680 81920 102400 128000 153600 179200 204800 256000
+                    307200 358400 409600 460800 512000"
+
+   MAX_ROOTFS_SIZE="40960"  # 40 GiB
+   MIN_ROOTFS_SIZE="100"
+
 
 # Files listed on the main screen
 ACTIVE_FILES="rootfs rootfs.bak homefs homefs.new homefs.old rootfs.old linuxfs.old"
@@ -290,9 +296,16 @@ main() {
 }
 
 makefs() {
-    local file=$1  type=$2  size=$3
-    mkdir -p $(dirname $file)                                                    || return 1
-    time_cmd_quiet dd if=/dev/zero of=$file bs=1M count=0 seek=$size             || return 2
+    local file=$1  type=$2  size=$3  dir=$(dirname "$file")
+    mkdir -p "$dir"                                                              || return 1
+    test -d "$dir"                                                               || return 1
+    local fs_type=(fs_type "$dir")
+    case $fs_type in
+        ext4|btrfs) fallocate --length ${size}M "$file"                 &>>$LOG_FILE || return 2 ;;
+                 *) dd if=/dev/zero of="$file" bs=1M count=0 seek=$size &>>$LOG_FILE || return 2 ;;
+    esac
+
+    sync
     time_cmd_quiet mkfs.$type -F $file                                           || return 3
 }
 
@@ -318,6 +331,9 @@ select_ftype() {
     FTYPE="$(echo $UI_RESULT | cut -d: -f1)"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 make_filefs() {
     local file=$1  ptype=$2
     local min_size=250 max_size=$MAX_SIZE
@@ -330,10 +346,13 @@ make_filefs() {
     fi
 
     local text="$ptype\n\n$(gt "Please select size of the new file system")"
-    if ! select_size -min "$min_size" -Max "$max_size" "" "$text"; then
+
+    if ! initrd_size_menu "$text" "$file" "$FULL_PATH"; then
+    #if ! select_size -min "$min_size" -Max "$max_size" "" "$text"; then
         warn_box "$TITLE" "" "$(pfgt "Not enough space on device")" ""
         return
     fi
+    [ "$UI_RESULT" = 'quit' ] && return
     local size=$UI_RESULT
 
     #select_ftype
@@ -351,7 +370,7 @@ make_filefs() {
     bg_info_box -o "$PULSATE"                                 \
         ""                                                    \
         "$(pfgt "Creating file %s" [f]$file[/])"              \
-        "$(pfgt "Size: %s Meg. Filesystem: %s" $size $FTYPE)" \
+        "$(pfgt "Size: %s. Filesystem: %s" "$(label_meg $size)" "$FTYPE")"     \
         ""                                                    \
         "$last_line"                                          \
         ""
@@ -399,7 +418,7 @@ _make_filefs() {
 
     noisy_yes_no_box "$TITLE" "" \
         "$(pfgt "About to create %s file" "[f]$name[/]")" ""   \
-        "$(pf "%16s: %s" "`gt size`"      "[n]$size[/] Meg")"  \
+        "$(pf "%16s: %s" "`gt size`"      "[n]$(label_meg $size)[/]")"  \
         "$(pf "%16s: %s" "`gt type`"      "[b]$type[/]")"      \
         "$(pf "%16s: %s" "`gt device`"    "[f]$DEV[/]")" ""    \
         "$(gt "Shall we proceed?")"                            \
@@ -411,7 +430,7 @@ _make_filefs() {
         "$(pfgt "Creating %s file" "[f]$name[/]")"      \
         ""
 
-    dd if=/dev/zero of=$full bs=1M count=0 seek=$size
+    dd if=/dev/zero of=$full bs=1M count=0 seek=$size status=none
     mkfs -q -t $type $opts -F $full
 
     kill_bg_info_box
@@ -435,7 +454,7 @@ copy_filefs() {
     fi
 
     bg_info_box -o "$PULSATE" "$TITLE" ""                                        \
-        "$(pfgt "Please be patient while %s megs are copied ..." "[n]$size[/]")" \
+        "$(pfgt "Please be patient while %s are copied ..." "[n]$(label_meg $size)[/]")" \
 
     cp -a $from_dir/* $dest_dir
     #rsync --progress -a --delete "$from_dir" "$dest_dir"
@@ -694,7 +713,7 @@ mk_filefs_info() {
     fi
 
     info="$info: [b]$(date -r $full '+%T %D')[/]"
-    info="$info : $(pf "[n]%4d[/] meg" `du_size $full`) $(gt "total")"
+    info="$info : $(pf "[n]%8s[/]" "$(label_meg $(du_size $full))" $(gt "total"))"
 
     USED_SPACE[$file]="0"
     # if [ "$OPT_FAST" ]; then
@@ -718,7 +737,7 @@ mk_filefs_info() {
 
     GOOD_FS="$GOOD_FS $file"
     info="$info : [p]$(fs_type $mp)[/]"
-    info="$info : [n]$(used_space $mp)[/] meg"
+    info="$info : [n]$(label_meg $(used_space $mp))[/]"
     local percent="$(pf "%3s" `fs_percent $mp`)"
     INFO_HASH[$file]="$info ([n]$percent[/]) $(gt "Used")"
     USED_SPACE[$file]=$(used_space $mp)
@@ -772,8 +791,8 @@ gather_device_info() {
         "$(fmt_size "available space"        $FS_AVAIL)"             \
         "$(fmt_size "total RAM"              $TOTAL_RAM)"            \
         ""                                                           \
-        "$(pf "%20s: %s" "`gt "persist device"`"  "[f]$DEV[/f]")"    \
-        "$(pf "%20s: %s" "`gt "persist path"`"    "[f]/$P_PATH[/]")" \
+        "$(pf "%20s: %s" "$(gt "persist device")"  "[f]$DEV[/f]")"    \
+        "$(pf "%20s: %s" "$(gt "persist path")"    "[f]/$P_PATH[/]")" \
         "[/]"                                                        \
         )
 }
@@ -804,5 +823,164 @@ gather_file_info() {
 
 }
 
+#==============================================================================
+# Copy code from live initrd  (yuck)
+#==============================================================================
+
+initrd_size_menu() {
+    local text=$1  base=${2%%.*}  dir=$3
+    local fs_type=$(fs_type "$dir")
+        case $part_fstype in
+        vfat) is_vfat=true ;;
+    esac
+
+    # Set the maximum size for this meun
+    local max_size=$SAFE_AVAIL  min_size=0
+    [ -n "$is_vfat" -a "$max_size" -gt 4095 ] && max_size=4095
+    if [ "$base" = rootfs ]; then
+        [ "$max_size" -gt "$MAX_ROOTFS_SIZE" ] && max_size=$MAX_ROOTFS_SIZE
+        min_size=$MIN_ROOTFS_SIZE
+    fi
+
+    text="$text\n$(pf "Available space %s" "$(label_meg $max_size)")"
+
+    local size sizes
+    for size in $MKFS_SIZES; do
+        [ $size -gt $max_size ] && break
+        [ $size -lt $min_size ] && continue
+        sizes="$sizes $size"
+    done
+    # Error out if we don't have enough room
+    [ -z "$sizes" ] && return -1
+
+    # Include all available space as last entry in menu if it is appropriate
+    local max=$(echo "$sizes" | sed 's/.* //')
+    [ $max -lt $max_size ] && sizes="$sizes $max_size"
+
+    if [ -n "$SET_GUI" ]; then
+        local menu data
+        for size in $sizes; do
+            local label=$(label_meg $size)
+            menu="$menu${menu:+!}$label"
+            data="$data$label:$size\n"
+        done
+        combo_box "size" "$menu" "$text"
+        # Get the exact size back, not an approximation
+        UI_RESULT=$(echo -e "$data" | sed  "s/^$UI_RESULT://")
+    else
+        #echo -e "$text"
+        cli_size_menu UI_RESULT "$text" "" $sizes
+    fi
+}
+
+#------------------------------------------------------------------------------
+# Let user select from a wide range of sizes from live initrd
+#------------------------------------------------------------------------------
+cli_size_menu() {
+    local var=$1 title=$2  max_s=${3:-12} ; shift 3
+
+    # create a variable for each row
+    local i
+    for i in $(seq 1 $max_s); do
+        eval local s_$i
+    done
+
+    # Fill the rows with  "cnt) label"
+    local cnt=0  scnt=0  size  data label  s
+    for size in $* quit ; do
+        cnt=$((cnt + 1))
+        scnt=$((scnt + 1))
+
+        case $size in
+                quit) label=$(bq $(qt "quit"))  ;;
+            *[^0-9]*) label=$(bq "$size")       ;;
+                   *) label=$(label_meg $size)  ;;
+        esac
+
+        data="$data$cnt:$size\n"
+        eval s=\$s_$scnt
+        s="$s$(printf "%3s) %-12s" "$cnt" "$label")"
+        eval s_$scnt=\$s
+        [ $scnt -ge $max_s ] && scnt=0
+    done
+    [ $cnt -lt $max_s ] && max_s=$cnt
+
+    local display
+    for cnt in $(seq 1 $max_s); do
+        eval s=\$s_$cnt
+        display="$display$s\n"
+    done
+
+    display=$(echo -e "$display" | sed -r -e "s/( [0-9]+)(\))/ $green\1$white\2$cyan/g" -e "s/$/$nc_co/")
+
+    my_select_2 "$text" UI_RESULT "" "$data" "$display"
+}
+
+#------------------------------------------------------------------------------
+# from live initrd
+#------------------------------------------------------------------------------
+my_select_2() {
+    local title=$1  var=$2  default=$3  data=$4  display=$5
+    local def_prompt=$(printf "Press <%s> for the default selection" "$(cq "enter")")
+
+    local val input err_msg
+    while [ -z "$val" ]; do
+
+        echo -e "$hi_co$title$nc_co"
+        #printf "$display\n" | sed -r -e "s/(^|\t)( ?[0-9]+)(\))/\t$green\2$white\3$cyan/g" -e "s/$/$nc_co/"
+        #printf "$display" | sed -r -e "s/(^|\t| )( ?[0-9]+)(\))/\t$green\2$white\3$cyan/g" -e "s/$/$nc_co/"
+        printf "$display\n" | sed "s/$/$nc_co/"
+        [ "$err_msg" ] && printf "$err_co%s$nc_co\n" "$err_msg"
+        [ "$default" ] && printf "$m_co%s$nc_co\n" "$def_prompt"
+        echo -n "$green>$nc_co "
+
+        read input
+        err_msg=
+        [ -z "$input" -a -n "$default" ] && input=$default
+
+        if ! echo "$input" | grep -q "^[0-9]\+$"; then
+            err_msg="You must enter a number"
+            [ "$default" ] && err_msg="You must enter a number or press <enter>"
+            continue
+        fi
+
+        val=$(echo -e "$data" | sed -n "s/^$input://p" | cut -d: -f1)
+
+        if [ -z "$val" ]; then
+            err_msg=$(printf "The number <%s> is out of range" "$(pqe $input)")
+            continue
+        fi
+
+        eval $var=\$val
+        break
+    done
+}
+
+#------------------------------------------------------------------------------
+# from live initrd
+#------------------------------------------------------------------------------
+set_colors() {
+    local noco=$1  loco=$2
+
+    [ "$noco" ] && return
+
+    local e=$(printf "\e")
+     black="$e[0;30m";    blue="$e[0;34m";    green="$e[0;32m";    cyan="$e[0;36m";
+       red="$e[0;31m";  purple="$e[0;35m";    brown="$e[0;33m"; lt_gray="$e[0;37m";
+   dk_gray="$e[1;30m"; lt_blue="$e[1;34m"; lt_green="$e[1;32m"; lt_cyan="$e[1;36m";
+    lt_red="$e[1;31m"; magenta="$e[1;35m";   yellow="$e[1;33m";   white="$e[1;37m";
+     nc_co="$e[0m";
+
+    cheat_co=$white;      err_co=$red;       hi_co=$white;
+      cmd_co=$white;     from_co=$lt_green;  mp_co=$magenta;   num_co=$magenta;
+      dev_co=$magenta;   head_co=$yellow;     m_co=$lt_cyan;    ok_co=$lt_green;
+       to_co=$lt_green;  warn_co=$yellow;  bold_co=$yellow;
+}
+
+bq()     { echo "$*"                        ;}
+cq()     { echo "$*"                        ;}
+#bq()     { echo "$yellow$*$m_co"          ;}
+
+set_colors
 prep_main "$@"
 main
