@@ -865,8 +865,9 @@ initrd_size_menu() {
             data="$data$label:$size\n"
         done
         combo_box "size" "$menu" "$text"
+
         # Get the exact size back, not an approximation
-        UI_RESULT=$(echo -e "$data" | sed  "s/^$UI_RESULT://")
+        UI_RESULT=$(echo -e "$data" | grep "^$UI_RESULT:" | cut -d: -f2)
     else
         #echo -e "$text"
         cli_size_menu UI_RESULT "$text" "" $sizes
