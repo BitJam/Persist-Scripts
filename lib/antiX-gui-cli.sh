@@ -67,6 +67,12 @@ size_label_m() { label_any_size "$1" "" M G T P E; }
 label_any_size() {
     local size=$1  sep=$2  u0=$3  unit=$4  meg=$((1024 * 1024))  new_unit ; shift 4
 
+    # Handle non-numeric input by echoing it as-is
+    if [ -z "${size##*[^0-9]*}" ]; then
+        echo $size
+        return
+    fi
+
     for new_unit; do
         [ $size -lt $meg ] && break
         size=$((size / 1024))
