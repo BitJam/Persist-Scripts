@@ -629,7 +629,7 @@ is_xz_squashfs() {
 sqfs_comp_type() {
     local file=$1
     comp_num=$(echo $(dd if="$file" bs=1 skip=20 count=2 status=none | od -An -tdI))
-    echo "comp_num: >$comp_num<" >&2
+    #echo "comp_num: >$comp_num<" >&2
     case $comp_num in
         1) echo gzip    ;;
         2) echo lzma    ;;
