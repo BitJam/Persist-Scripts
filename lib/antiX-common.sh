@@ -455,11 +455,6 @@ need_root() {
     if [ $UID -eq 0 ]; then
         HOME=/root
         return
-
-    elif [ "$SET_GUI" ] && which gksu &>/dev/null; then
-        vmsg "Relaunching as root ..."
-        clean_up
-        exec gksu -- "$0" "${CMDLINE_ARGS[@]}"
     fi
     error_box "$(gt_ac "Please run this script as root.")"
 }
