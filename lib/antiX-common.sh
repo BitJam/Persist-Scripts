@@ -451,7 +451,6 @@ read_conf_error() {
 }
 
 need_root() {
-
     if [ $UID -eq 0 ]; then
         HOME=/root
         return
