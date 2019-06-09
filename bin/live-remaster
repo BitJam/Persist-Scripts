@@ -572,6 +572,10 @@ finish_remaster() {
 
     mv $tmp_file $new_file
 
+    local state_dir=$(dirname $new_file)/state
+    rm -rf $state_dir.new
+    test -d $state_dir && cp -a $state_dir $state_dir.new
+
     qmsg 'Making md5 sum ...'
 
     local md5_file=$SQFILE_FULL.md5.new
