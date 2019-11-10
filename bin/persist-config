@@ -2,6 +2,7 @@
 
 # GETTEXT_KEYWORD="gt"
 # GETTEXT_KEYWORD="pfgt"
+# GETTEXT_KEYWORD="error_box_pf"
 
 antiX_lib=/usr/local/lib/antiX
 source $antiX_lib/antiX-common.sh     "$@"
@@ -64,6 +65,12 @@ read_options "$@"
 extra_args   0
 
 [ "$SET_COMMAND" ] && SET_SHUT_DOWN=true
+
+case $SET_COMMAND in
+        reboot|/sbin/reboot)  SET_COMMAND=/sbin/reboot   ;;
+    poweroff|/sbin/poweroff)  SET_COMMAND=/sbin/poweroff ;;
+                          *)  error_box_pf "This script can only run the commands %s and %s" 'shutdown' 'reboot' ;;
+esac
 
 #show_cli_title
 
