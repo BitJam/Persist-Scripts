@@ -67,6 +67,7 @@ extra_args   0
 [ "$SET_COMMAND" ] && SET_SHUT_DOWN=true
 
 case $OPT_COMMAND in
+                         "")                             ;;
         reboot|/sbin/reboot)  OPT_COMMAND=/sbin/reboot   ;;
     poweroff|/sbin/poweroff)  OPT_COMMAND=/sbin/poweroff ;;
                           *)  error_box_pf "This script can only run the commands %s and %s" 'shutdown' 'reboot' ;;
