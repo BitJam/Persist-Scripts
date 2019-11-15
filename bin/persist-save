@@ -242,7 +242,7 @@ check_persist_uuid() {
         else
             local try max_try=3 fail
             for try in $(seq 1 $max_try); do
-                get_text title ""                                         \
+                get_password "" ""                                         \
                 $"Encrypted live-usb detected"                            \
                 ""                                                        \
                 $"Be sure to set the keyboard layout to English"          \
