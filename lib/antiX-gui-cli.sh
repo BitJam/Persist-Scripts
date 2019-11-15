@@ -183,6 +183,17 @@ get_text() {
     fi
 }
 
+get_password() {
+    unset UI_RESULT
+    if [ "$SET_GUI" ]; then
+        _dialog_box_gui password "$@"
+        return $?
+    else
+        get_text_cli "$@"
+        return $?
+    fi
+}
+
 combo_box() {
     unset UI_RESULT
     if [ "$SET_GUI" ]; then
@@ -344,7 +355,7 @@ _dialog_box_gui() {
     opts="$YAD_STD_OPTS"
 
     case "$type" in
-        text|combo)
+        text|combo|password)
             opts="$opts $YAD_MULTI_OPTS"
             label="$1"
             choice="$2"
@@ -372,6 +383,7 @@ _dialog_box_gui() {
          error)  opts="$opts $YAD_ERROR_OPTS";;
           exit)  opts="$opts $YAD_EXIT_OPTS";;
           text)  field_type="";;
+      password)  field_type="H";;
          combo)  field_type="CB";;
 
              *)  echo "$ME: internal error: no \"$1\" _multi_box"
