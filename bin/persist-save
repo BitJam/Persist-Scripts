@@ -254,7 +254,8 @@ check_persist_uuid() {
 
                 fail=
 
-                echo "$UI_RESULT" |  cryptsetup open --type luks $crypt_dev $crypt_name --key-file - && break
+                #echo "$UI_RESULT" |  cryptsetup open --type luks $crypt_dev $crypt_name --key-file - && break
+                printf "$UI_RESULT" |  cryptsetup open --type luks $crypt_dev $crypt_name -d - && break
 
                 fail=true
 
