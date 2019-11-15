@@ -266,7 +266,7 @@ warn_box() {
 
 noisy_yes_no_box() {
     [ "$SET_QUIET" ] && return 0
-    yes_no_box "$@" 
+    yes_no_box "$@"
     return $?
 }
 
@@ -370,6 +370,7 @@ _dialog_box_gui() {
             -c) center=true     && shift;;
             -o) opts="$opts $2" && shift 2;;
             --) notitle=true    && shift;;
+            -n) notitle=true    && shift;;
             -a) shift;;
             -q) shift;;
              *) break;;
