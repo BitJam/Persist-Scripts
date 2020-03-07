@@ -941,6 +941,11 @@ clean_up() {
 
     delete_files_rf $TEMP_DIR
 
+    local luks
+    for luks in LUKS_CLOSE; do
+        cryptsetup luksClose $luks
+    done
+
     # Save log file to /root/Live-usb-storage/live-logs/ if available
     # and if asked to via save_log_file().
     _save_log_file
