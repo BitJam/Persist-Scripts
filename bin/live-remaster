@@ -76,6 +76,9 @@ prep_main() {
 }
 
 main() {
+
+    check_boot_uuid || error_box_pf "Error when checking for %s device"  'live-usb'
+
     #--- Mount device holding linuxfs if needed
     mount_if_needed $BOOT_DEV $BOOT_MP
     make_readwrite $BOOT_MP 2 || error_box_pf "The live file system is read-only.  Cannot remaster."
@@ -689,6 +692,68 @@ restore_dirty_bytes_and_ratio() {
     [ -n "$ORIG_DIRTY_RATIO" ] && sysctl vm.dirty_ratio=$ORIG_DIRTY_RATIO >> $LOG_FILE
     unset ORIG_DIRTY_BYTES ORIG_DIRTY_RATIO
 }
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+check_boot_uuid() {
+    local uuid_dev=$(blkid -U "$BOOT_UUID" -c /dev/null)
+    [ -n "$uuid_dev" ] && return 0
+
+    if [ "$ENCRYPTED" ]; then
+        local crypt_dev=$(blkid -U "$CRYPT_UUID" -c /dev/null)
+        [ -z "$crypt_dev" ] && error_box \
+            "$(pf $"The encrypted partition with UUID %s was not found" "[n]$CRYPT_UUID[/]")" \
+            $"Please plug in the live-usb device and try again"
+
+        local crypt_name=$ME
+        if [ -z "$SET_GUI" ]; then
+            echo "Encrypted live-usb detected"
+            echo "You will be asked to enter the passphrase below"
+            cryptsetup open --type luks $crypt_dev $crypt_name || error_box \
+                "$(pf $"Failed to open the encrypted partition")"
+        else
+            local try max_try=3 fail
+            for try in $(seq 1 $max_try); do
+                get_password "" ""                                        \
+                $"Encrypted live-usb detected"                            \
+                ""                                                        \
+                $"Be sure to set the keyboard layout to English"          \
+                ""                                                        \
+                "$(pf $"This is try %s out of $s" $try $max_try)"         \
+                ""                                                        \
+                $"Please enter the passphrase" \
+                ""
+
+                fail=
+
+                printf "$UI_RESULT" |  cryptsetup open --type luks $crypt_dev $crypt_name -d - && break
+
+                fail=true
+
+                warn_box $"That passphrase did not match"    \
+                         ""                                  \
+                         $"Please try again"
+            done
+
+            [ "$fail" ] && error_box \
+                "$(pf $"Passphrase failed to match after %s attempts" $max_try)"
+        fi
+
+        LUKS_CLOSE="$LUKS_CLOSE $crypt_name"
+        BOOT_DEV=/dev/mapper/$crypt_name
+
+        return 0
+    fi
+
+    [ -z "$uuid_dev" ] &&  error_box \
+        "$(pf $"The persistence device with UUID %s was not found" "[n]$PERSIST_UUID[/]")" \
+        "$(pf $"Please plug in the persistence device and try again")"
+
+    vpf "Using device %s with UUID %s" "[n]$uuid_dev[/]" "[n]$PERSIST_UUID[/]"
+    PERSIST_DEV=$uuid_dev
+}
+
 
 
 prep_main "$@"

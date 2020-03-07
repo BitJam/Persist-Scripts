@@ -50,7 +50,7 @@ main() {
     trap clean_up EXIT
     create_lock
 
-    check_persist_uuid || error_box "Error when checking for persistence device"
+    check_persist_uuid || error_box "Error when checking for %s device" 'persistence'
 
     if which alsactl &>/dev/null; then
         vpf "Storing volume settings"
