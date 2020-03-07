@@ -222,6 +222,9 @@ check_vid() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 check_persist_uuid() {
     local uuid_dev=$(blkid -U "$PERSIST_UUID" -c /dev/null)
     [ -n "$uuid_dev" ] && return 0
@@ -254,7 +257,6 @@ check_persist_uuid() {
 
                 fail=
 
-                #echo "$UI_RESULT" |  cryptsetup open --type luks $crypt_dev $crypt_name --key-file - && break
                 printf "$UI_RESULT" |  cryptsetup open --type luks $crypt_dev $crypt_name -d - && break
 
                 fail=true
