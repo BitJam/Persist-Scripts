@@ -270,7 +270,7 @@ check_persist_uuid() {
                 "$(pf $"Passphrase failed to match after %s attempts" $max_try)"
         fi
 
-
+        LUKS_CLOSE="$LUKS_CLOSE $crypt_name"
         PERSIST_DEV=/dev/mapper/$crypt_name
 
         return 0
