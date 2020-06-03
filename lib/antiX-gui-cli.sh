@@ -137,13 +137,13 @@ vmsg() {
 
     #echo -e "$(date "+%F %T"): $text"  | sed -r "s:\x1B\[[0-9;]*[mK]::g" >> $LOG_FILE
     #echo -e "$(date "+%F %T"): $text" >> $LOG_FILE
-    echo -e "$text" >> $LOG_FILE
+    echo -e "$text"  | strip_ansi >> $LOG_FILE
 }
 
 qmsg() {
     local text="$(markup_text "$@")"
     echo -e "$text"
-    echo -e "$text" >> $LOG_FILE
+    echo -e "$text" | strip_ansi >> $LOG_FILE
 }
 
 # Verbose exit, explaining why we are leaving.

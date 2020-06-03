@@ -1462,6 +1462,14 @@ explore_dir() {
     fi
 }
 
+#------------------------------------------------------------------------------
+# Remove most/all ANSI escape sequences and backspace
+# This cleans out most special chars and sequences from the log file
+# (from cli-shell-utils.bash)
+#------------------------------------------------------------------------------
+strip_ansi() {
+    sed -r -e "s/\x1B\[[0-9;]+[fhHmlpKABCDj]|\x1B\[[suK]|\x08//g"
+}
 
 # # FIXME: this routine is broken
 # fix_it_yourself() {
