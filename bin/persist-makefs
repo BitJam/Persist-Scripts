@@ -578,7 +578,7 @@ fix_or_delete() {
         esac
 
     elif [ "$type" = "$DELETE_IT" ]; then
-        noisy_yes_no_box "$TITLE" "" "$(pfgt "Delete file %s?" "[f]$file[/]")" "" || continue
+        noisy_yes_no_box "$TITLE" "" "$(pfgt "Delete file %s?" "[f]$file[/]")" "" || return
         rm -f $full
     else
         warn_box "Internal error in fix_or_delete($ui_result)"
